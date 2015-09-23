@@ -1,20 +1,29 @@
-#include <iostream>
-
-
+#ifndef ROBOT_H
+#define ROBOT_H
 
 
 class Robot{
-	
+
+private:	
 	int orientation;
+
+public:
+	Robot();
+	~Robot();
 	
 	//Relative Movement
-	
 	void moveForward( int cm_for );
 	void moveBackward( int cm_back );
-	
 	void turnLeft( int degLeft );
 	void turnRight( int degRight );
 	
+	//Continuous Movement 
+	void goForward();
+	//void *stayForward(void *arg);
+	void stayBackward();
+	void stayLeft();
+	void stayRight();
+
 	//Turning on Orientation
 	void turnNorth();
 	void turnEast();
@@ -23,4 +32,6 @@ class Robot{
 	void setOrientaiton( int degTrue );
 	
 	
-}
+};
+
+#endif

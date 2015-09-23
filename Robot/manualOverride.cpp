@@ -1,67 +1,88 @@
-
-
-
 #include <stdio.h>
-#include<conio.h>
 #include<iostream>
-//#include<chrono>
+#include<string>
+#include<ncurses.h>
+//#include<mutex>
+
+//For threading
+#include<thread>
+#include<pthread.h>
+
+//Sleep Stuff
+#include<chrono>
+#include<unistd.h>
+
+// Robot Stuff
+#include"robot.h"
+
 
 using namespace std;
 
-bool flag_isForward;
+//void *stayForward(void *arg);
+int kbhit(void);
 
-void stayForward(){
-	
-	while( flag_isForward ){
-		printf("Is moving forward \n");
-		//sleep_for(chrono::nanoseconds(10));
-	}
-	
-}
+//mutex charBufferLock;
+
 
 int main(int argc, char *argv[] ){
 
-	flag_isForward = false;
 
-	printf("\n");
-	printf("/////////////////////////////////// \n");
-	printf("Welcome to Manual Override \n" );
-	printf("/////////////////////////////////////  \n");
-	printf("/////////////////////////////////////  \n\n");
-
+	Robot* robot = new Robot();
 	
+	// Initialize Terminal
+	initscr();
+    cbreak();
+    noecho();
+    nodelay(stdscr, TRUE);
+    scrollok(stdscr, TRUE);
+
+	printw("\n");
+	printw("/////////////////////////////////// \n");
+	printw("Welcome to Manual Override \n" );
+	printw("/////////////////////////////////// \n\n");
+
+
+
+
 	while(true){
-		
-		if( kbhit()!=0 ){
-			//printf("%s", getch() );
-			//printf( "%c", getch() );
-			char c = getch();
+//		printf("a");
+
+		char c;
+
+		if( kbhit() ){
+			c = getch();
 			
 			if( c == 'w' ){
-				printf("Move Forward\n");
+				robot->moveForward(4);
 			}
 			if( c == 's' ){
-				printf("Move Back\n");
+				robot->moveBackward(4);
 			}
 			if( c == 'a' ){
-				printf("Move Left\n");
+				robot->turnLeft(4);
 			}
 			if( c == 'd' ){
-				printf("Move Right\n");
+				robot->turnRight(4);
 			}
 			if( c == 1 ){
-				if( flag_isForward )
-					flag_isForward = false;
-				else{
-					printf("Ctrl-W clicked \n");
-					thread::thread t1;
-					//(stayForward,"forwardThread");
-					//t1.join();
-				}
+				robot->goForward();
 			}
-		}
-	
+			//refresh();
+		}	// endif kbhit()
 	}
 
 	return 0;
+}
+
+
+int kbhit(void)
+{
+    int ch = getch();
+
+    if (ch != ERR) {
+        ungetch(ch);
+        return 1;
+    } else {
+        return 0;
+    }
 }
