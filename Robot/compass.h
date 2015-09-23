@@ -1,0 +1,15 @@
+
+
+
+
+class Compass{
+
+
+	int getOrientation();
+
+	
+	
+	
+	
+	
+}
