@@ -8,12 +8,12 @@
 #include<unistd.h>
 
 
-bool flag_isForward;
+bool flag_followWall;
 
 // Robot Stuff
 Robot::Robot(){
 	orientation = -1;
-	flag_isForward = false;
+	flag_followWall = false;
 }
 Robot::~Robot(){
 
@@ -22,34 +22,47 @@ Robot::~Robot(){
 //Relative Movement
 void Robot::moveForward( int cm_forward ){
 	printw("Move forward %d cm\n", cm_forward);
+	// 
 }
 
 void Robot::moveBackward( int cm_back ){
 	printw("Move back %d cm\n", cm_back );
+	//
 }
 
 void Robot::turnLeft( int degLeft ){
 	printw("Turn left %d degrees\n",degLeft);
+	//
 }
 
 void Robot::turnRight( int degRight ){
-	printw("Turn right %d degrees \n",degRight );	
+	printw("Turn right %d degrees \n",degRight );
+	//
 }
 
+// Continuous Movement
+void Robot::stayForward(){
+};
+
+void Robot::stayBackward(){};
+void Robot::stayLeft(){};
+void Robot::stayRight(){};
 
 
-void *stayForThread(void *argv){
+
+// Continuous Functions 
+
+void *followWall_thread(void *argv, int howFar){
 	while( flag_isForward ){
-		printw("b \n");
 		sleep(1);
 		refresh();
 	}
 }
 
-void Robot::goForward(){
+void Robot::followWall(int cm){
 
-	if( flag_isForward != true ){
-		flag_isForward = true;
+	if( flag_followWall != true ){
+		flag_followWall = true;
 		pthread_t t1;
 		int ret;
 		printw("In main: creating thread\n");
@@ -59,7 +72,7 @@ void Robot::goForward(){
 			exit(EXIT_FAILURE);
 		}
 	}else{
-		flag_isForward = false;
+		flag_followWall = false;
 	}
 
 }

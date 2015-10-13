@@ -1,8 +1,10 @@
 #include <stdio.h>
 #include<iostream>
 #include<string>
-#include<ncurses.h>
-//#include<mutex>
+
+#include"opencv2/highgui/highgui.cpp"
+
+
 
 //For threading
 #include<thread>
@@ -16,10 +18,16 @@
 #include"robot.h"
 
 
+
+
+
+
+
+
 using namespace std;
 
 //void *stayForward(void *arg);
-int kbhit(void);
+//int kbhit(void);
 
 //mutex charBufferLock;
 
@@ -27,20 +35,19 @@ int kbhit(void);
 int main(int argc, char *argv[] ){
 
 
-	Robot* robot = new Robot();
+//	Robot* robot = new Robot();
 	
 	// Initialize Terminal
-	initscr();
+/*	initscr();
     cbreak();
     noecho();
     nodelay(stdscr, TRUE);
-    scrollok(stdscr, TRUE);
+    scrollok(stdscr, TRUE);*/
 
-	printw("\n");
-	printw("/////////////////////////////////// \n");
-	printw("Welcome to Manual Override \n" );
-	printw("/////////////////////////////////// \n\n");
-
+	printf("\n");
+	printf("/////////////////////////////////// \n");
+	printf("Welcome to Manual Override \n" );
+	printf("/////////////////////////////////// \n\n");
 
 
 
@@ -49,8 +56,13 @@ int main(int argc, char *argv[] ){
 
 		char c;
 
-		if( kbhit() ){
-			c = getch();
+		if( waitKey(10) == 27 ){
+			printf("Escape pressed\n");
+		}
+		
+		
+/*		if( kbhit()true ){
+			//c = getch();
 			
 			if( c == 'w' ){
 				robot->moveForward(4);
@@ -68,14 +80,14 @@ int main(int argc, char *argv[] ){
 				robot->goForward();
 			}
 			//refresh();
-		}	// endif kbhit()
+		}	// endif kbhit()*/
 	}
 
 	return 0;
 }
 
 
-int kbhit(void)
+/*int kbhit(void)
 {
     int ch = getch();
 
@@ -85,4 +97,8 @@ int kbhit(void)
     } else {
         return 0;
     }
-}
+}*/
+
+
+// Make your robot to follow the color
+// 
