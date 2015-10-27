@@ -1,0 +1,8 @@
+g++ -Wall -std=c++11 manualOverride
+
+g++ -c manualOverride.cpp -pthread -std=c++11
+g++ manualOverride.o -o manualOverride.out -pthread -std=c++11
+
+
+
+g++ -v -Wall -std=c++11 -pthread manualOverride.cpp -lncurses 

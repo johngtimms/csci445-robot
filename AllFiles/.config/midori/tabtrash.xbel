@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE xbel PUBLIC "+//IDN python.org//DTD XML Bookmark Exchange Language 1.0//EN//XML" "http://www.python.org/topics/xml/dtds/xbel-1.0.dtd">
+<xbel version="1.0" xmlns:midori="http://www.twotoasts.de">
+<info>
+<metadata owner="http://www.twotoasts.de"/>
+</info>
+<bookmark href="http://thinkrpi.wordpress.com/2013/04/05/step-3-install-softwares-for-webcam-and-computer-vision/">
+<title>‪Step 3 – Install softwares (for webcam and computer vision) | Think RPI</title>
+<info>
+<metadata midori:dont-write-history="1" midori:icon="http://s2.wp.com/i/favicon.ico?m=1405977958g" owner="http://www.twotoasts.de"/>
+</info>
+</bookmark>
+<bookmark href="http://thinkrpi.wordpress.com/2013/05/22/opencvpi-cam-step-4-link-with-opencv/">
+<title>‪OpenCV&amp;Pi Cam – Step 4 : link with OpenCV | Think RPI</title>
+<info>
+<metadata midori:icon="http://s2.wp.com/i/favicon.ico?m=1405977958g" midori:history-step="2" owner="http://www.twotoasts.de"/>
+</info>
+</bookmark>
+</xbel>

@@ -1,0 +1,3 @@
+#! /bin/bash
+sudo rm -r circle CMakeCache.txt cmake_install.cmake CMakeFiles/ Makefile
+sudo cmake .

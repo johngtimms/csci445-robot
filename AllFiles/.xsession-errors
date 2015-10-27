@@ -1,0 +1,27 @@
+Xsession: X session started for pi at Wed Sep  3 08:17:21 PDT 2014
+localuser:pi being added to access control list
+Obt-Message: Xinerama extension is not present on the server
+
+New 'X' desktop is raspberrypi:1
+
+Starting applications specified in /home/pi/.vnc/xstartup
+Log file is /home/pi/.vnc/raspberrypi:1.log
+
+Xsession: X session started for pi at Wed Sep  3 08:17:30 PDT 2014
+Openbox-Message: Unable to find a valid menu file "/usr/share/lxde/openbox/menu.xml"
+X Error of failed request:  BadValue (integer parameter out of range for operation)
+  Major opcode of failed request:  109 (X_ChangeHosts)
+  Value in failed request:  0x5
+  Serial number of failed request:  6
+  Current serial number in output stream:  8
+localuser:pi being added to access control list
+Obt-Message: XKB extension is not present on the server or too old
+Obt-Message: Xinerama extension is not present on the server
+Obt-Message: XRandR extension is not present on the server
+Xlib:  extension "RANDR" missing on display ":1".
+Xlib:  extension "RANDR" missing on display ":1".
+Xlib:  extension "RANDR" missing on display ":1".
+
+** (lxpolkit:2488): WARNING **: Unable to register authentication agent: GDBus.Error:org.freedesktop.PolicyKit1.Error.Failed: An authentication agent already exists for the given subject
+A VNC server is already running as :1
+Openbox-Message: Unable to find a valid menu file "/usr/share/lxde/openbox/menu.xml"

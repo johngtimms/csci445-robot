@@ -1,0 +1,70 @@
+03/09/14 07:27:05 Xvnc version TightVNC-1.3.9
+03/09/14 07:27:05 Copyright (C) 2000-2007 TightVNC Group
+03/09/14 07:27:05 Copyright (C) 1999 AT&T Laboratories Cambridge
+03/09/14 07:27:05 All Rights Reserved.
+03/09/14 07:27:05 See http://www.tightvnc.com/ for information on TightVNC
+03/09/14 07:27:05 Desktop name 'X' (raspberrypi:2)
+03/09/14 07:27:05 Protocol versions supported: 3.3, 3.7, 3.8, 3.7t, 3.8t
+03/09/14 07:27:05 Listening for VNC connections on TCP port 5902
+Font directory '/usr/share/fonts/X11/75dpi/' not found - ignoring
+Font directory '/usr/share/fonts/X11/100dpi/' not found - ignoring
+xrdb: No such file or directory
+xrdb: can't open file '/home/pi/.Xresources'
+
+03/09/14 07:27:27 Got connection from client 192.168.1.106
+03/09/14 07:27:27 Using protocol version 3.8
+03/09/14 07:27:27 Enabling TightVNC protocol extensions
+03/09/14 07:27:30 Full-control authentication passed by 192.168.1.106
+03/09/14 07:27:30 Using tight encoding for client 192.168.1.106
+03/09/14 07:27:30 rfbProcessClientNormalMessage: ignoring unknown encoding 16
+03/09/14 07:27:30 Using image quality level 6 for client 192.168.1.106
+03/09/14 07:27:30 rfbProcessClientNormalMessage: ignoring unknown encoding -223
+03/09/14 07:27:30 Enabling LastRect protocol extension for client 192.168.1.106
+03/09/14 07:27:30 Enabling cursor position updates for client 192.168.1.106
+03/09/14 07:27:30 Enabling full-color cursor updates for client 192.168.1.106
+
+03/09/14 07:33:01 Got connection from client 192.168.1.109
+03/09/14 07:33:01   (other clients 192.168.1.106)
+03/09/14 07:33:01 Using protocol version 3.8
+03/09/14 07:33:01 Enabling TightVNC protocol extensions
+03/09/14 07:33:06 Full-control authentication passed by 192.168.1.109
+03/09/14 07:33:06 Using tight encoding for client 192.168.1.109
+03/09/14 07:33:06 rfbProcessClientNormalMessage: ignoring unknown encoding 16
+03/09/14 07:33:06 Using image quality level 6 for client 192.168.1.109
+03/09/14 07:33:06 rfbProcessClientNormalMessage: ignoring unknown encoding -223
+03/09/14 07:33:06 Enabling LastRect protocol extension for client 192.168.1.109
+03/09/14 07:33:06 Enabling cursor position updates for client 192.168.1.109
+03/09/14 07:33:06 Enabling full-color cursor updates for client 192.168.1.109
+03/09/14 07:33:50 Client 192.168.1.109 gone
+03/09/14 07:33:50 Statistics:
+03/09/14 07:33:50   key events received 1, pointer events 1626
+03/09/14 07:33:50   framebuffer updates 383, rectangles 3448, bytes 702294
+03/09/14 07:33:50     LastRect markers 265, bytes 3180
+03/09/14 07:33:50     cursor shape updates 27, bytes 20132
+03/09/14 07:33:50     cursor position updates 95, bytes 1140
+03/09/14 07:33:50     copyRect rectangles 61, bytes 976
+03/09/14 07:33:50     tight rectangles 3000, bytes 676866
+03/09/14 07:33:50   raw bytes equivalent 89232556, compression ratio 131.831937
+
+03/09/14 07:34:18 Got connection from client 192.168.1.109
+03/09/14 07:34:18   (other clients 192.168.1.106)
+03/09/14 07:34:18 Using protocol version 3.8
+03/09/14 07:34:18 Enabling TightVNC protocol extensions
+03/09/14 07:34:22 Full-control authentication passed by 192.168.1.109
+03/09/14 07:34:22 Using tight encoding for client 192.168.1.109
+03/09/14 07:34:22 rfbProcessClientNormalMessage: ignoring unknown encoding 16
+03/09/14 07:34:22 Using image quality level 6 for client 192.168.1.109
+03/09/14 07:34:22 rfbProcessClientNormalMessage: ignoring unknown encoding -223
+03/09/14 07:34:22 Enabling LastRect protocol extension for client 192.168.1.109
+03/09/14 07:34:22 Enabling cursor position updates for client 192.168.1.109
+03/09/14 07:34:22 Enabling full-color cursor updates for client 192.168.1.109
+03/09/14 07:43:01 Client 192.168.1.109 gone
+03/09/14 07:43:01 Statistics:
+03/09/14 07:43:01   key events received 95, pointer events 6573
+03/09/14 07:43:01   framebuffer updates 1256, rectangles 7309, bytes 2135502
+03/09/14 07:43:01     LastRect markers 696, bytes 8352
+03/09/14 07:43:01     cursor shape updates 93, bytes 67750
+03/09/14 07:43:01     cursor position updates 43, bytes 516
+03/09/14 07:43:01     copyRect rectangles 195, bytes 3120
+03/09/14 07:43:01     tight rectangles 6282, bytes 2055764
+03/09/14 07:43:01   raw bytes equivalent 161354832, compression ratio 78.488986

@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xbel version="1.0"
+      xmlns:bookmark="http://www.freedesktop.org/standards/desktop-bookmarks"
+      xmlns:mime="http://www.freedesktop.org/standards/shared-mime-info"
+>
+  <bookmark href="file:///home/pi/Desktop/lion-wide.jpg" added="2014-07-24T18:31:36Z" modified="2014-07-24T18:31:48Z" visited="2014-07-24T18:31:36Z">
+    <info>
+      <metadata owner="http://freedesktop.org">
+        <mime:mime-type type="image/jpeg"/>
+        <bookmark:applications>
+          <bookmark:application name="Midori" exec="&apos;midori %u&apos;" modified="2014-07-24T18:31:48Z" count="2"/>
+        </bookmark:applications>
+      </metadata>
+    </info>
+  </bookmark>
+  <bookmark href="file:///home/pi/Desktop/Iron-Man.jpg" added="2014-07-24T19:30:16Z" modified="2014-07-24T19:30:17Z" visited="2014-07-24T19:30:17.599653Z">
+    <info>
+      <metadata owner="http://freedesktop.org">
+        <mime:mime-type type="image/jpeg"/>
+        <bookmark:applications>
+          <bookmark:application name="Midori" exec="&apos;midori %u&apos;" modified="2014-07-24T19:30:17Z" count="2"/>
+        </bookmark:applications>
+      </metadata>
+    </info>
+  </bookmark>
+</xbel>
