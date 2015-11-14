@@ -72,9 +72,9 @@ public:
     
     int getUpFull()
     {
-      MapNode* node = &this;
+      MapNode* node = upNode;
       int ret = 0;
-      while(node->getUp() != NULL)
+      while(node != NULL)
       {
 	node = node->getUp();
 	ret++;
@@ -94,9 +94,9 @@ public:
     
     int getLeftFull()
     {
-      MapNode* node = &this;
+      MapNode* node = leftNode;
       int ret = 0;
-      while(node->getLeft() != NULL)
+      while(node != NULL)
       {
 	node = node->getLeft();
 	ret++;
@@ -116,9 +116,9 @@ public:
     
     int getRightFull()
     {
-      MapNode* node = &this;
+      MapNode* node = rightNode;
       int ret = 0;
-      while(node->getRight() != NULL)
+      while(node != NULL)
       {
 	node = node->getRight();
 	ret++;

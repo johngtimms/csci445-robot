@@ -10,6 +10,9 @@ find_package( OpenCV REQUIRED )
 #add_library(mylib ${HEADER_FILES})
 #add_executable(particle main.cpp ${HEADER_FILES})
 
+INCLUDE_DIRECTORIES( ${CMAKE_CURRENT_SOURCE_DIR}/include )
+link_directories( ${CMAKE_BINARY_DIR}/bin)
+
 add_executable(particle main.cpp Util.h Particle.h)
 
 

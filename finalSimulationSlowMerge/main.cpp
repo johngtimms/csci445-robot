@@ -13,6 +13,7 @@
 #include "Particle.h"
 #include "Node.h"
 #include "A_Star.h"
+#include "robot.h"
 
 using namespace cv;
 using namespace std;
@@ -22,6 +23,10 @@ int NUM_PARTICLES = 30;
 
 #define VARIANCE 2
 #define MOVEMENT 1
+#define UP 3
+#define DOWN 0
+#define LEFT 1
+#define RIGHT 2
 
 #define drawCross( center, color, d )                  \
 line( image, cv::Point( center.x - d, center.y - d ),           \
@@ -89,10 +94,10 @@ int main (int argc, char * const argv[]) {
     {
       for(int x = 0; x < 5; x++)
       {
-	cv::Point* nodeLoc = new cv::Point((x * 60) + 30, (y * 60) + 30);
-	MapNode* mapNode = new MapNode(*nodeLoc);
-	nodes[y][x] = mapNode;
-      }
+		cv::Point* nodeLoc = new cv::Point((x * 60) + 30, (y * 60) + 30);
+		MapNode* mapNode = new MapNode(*nodeLoc);
+		nodes[y][x] = mapNode;
+	  }
     }
     
     //figure out where each node can go
@@ -161,7 +166,7 @@ int main (int argc, char * const argv[]) {
     {
       for(int x = 0; x < 5; x++)
       {
-	possibleNodes[i++] = nodes[y][x];
+		possibleNodes[i++] = nodes[y][x];
       }
     }
     printf("init size %i\n", possibleNodes.size());
@@ -169,134 +174,111 @@ int main (int argc, char * const argv[]) {
     //list of all nodes made, check sonar and remove impossible nodes
     while(possibleNodes.size() > 1)
     {
-      int hasDown = 0;
-      for(int move = 1; move < 1000; move++)
-      {
-	if(image.at<Vec3b>(pos.y + 15 - move, pos.x + 15).val[0] == 255)
-	{
-	  hasDown = move > 35 ? move / 60 : 0;
-	  break;
-	}
-      }
-      int hasUp = 0;
-      for(int move = 1; move < 1000; move++)
-      {
-	if(image.at<Vec3b>(pos.y + 15 + move, pos.x + 15).val[0] == 255)
-	{
-	  hasUp = move > 35 ? move / 60 : 0;
-	  break;
-	}
-      }
-      int hasLeft = 0;
-      for(int move = 1; move < 1000; move++)
-      {
-	if(image.at<Vec3b>(pos.y + 15, pos.x + 15 - move).val[0] == 255)
-	{
-	  hasLeft = move > 35 ? move / 60 : 0;
-	  break;
-	}
-      }
-      int hasRight = 0;
-      for(int move = 1; move < 1000; move++)
-      {
-	if(image.at<Vec3b>(pos.y + 15, pos.x + 15 + hasUpmove).val[0] == 255)
-	{
-	  hasRight = move > 35 ? move / 60 : 0;
-	  break;
-	}
-      }
-      for(int j = 0; j < possibleNodes.size(); j++)
-      {
-	
-	//remove nodes that dont match this
-	if(possibleNodes[j]->getDownFull() != hasDown)
-	{
-	  possibleNodes.erase(possibleNodes.begin() + j);
-	  j--;
-	  continue;
-	}
-	if(possibleNodes[j]->getUpFull() != hasUp)
-	{
-	  possibleNodes.erase(possibleNodes.begin() + j);
-	  j--;
-	  continue;
-	}
-	if(possibleNodes[j]->getRightFull() != hasRight)
-	{
-	  possibleNodes.erase(possibleNodes.begin() + j);
-	  j--;
-	  continue;
-	}
-	if(possibleNodes[j]->getLeftFull() != hasLeft)
-	{
-	  possibleNodes.erase(possibleNodes.begin() + j);
-	  j--;
-	  continue;
-	}
+	  turn(down, true)
+      int hasDown = checkSonar(0) / 60;
+	  turn(LEFT, true);
+      int hasLeft = checkSonar(0) / 60;
+	  turn(UP, true);
+      int hasUp = checkSonar(0) / 60;
+	  turn(RIGHT, true);
+      int hasRight = checkSonar(0) / 60;
+	  for(int j = 0; j < possibleNodes.size(); j++)
+	  {
+	  //remove nodes that dont match this
+		if(possibleNodes[j]->getDownFull() != hasDown)
+		{
+			possibleNodes.erase(possibleNodes.begin() + j);
+			j--;
+			continue;
+		}
+		if(possibleNodes[j]->getUpFull() != hasUp)
+		{
+			possibleNodes.erase(possibleNodes.begin() + j);
+			j--;
+			continue;
+		}
+		if(possibleNodes[j]->getRightFull() != hasRight)
+		{
+			possibleNodes.erase(possibleNodes.begin() + j);
+			j--;
+			continue;
+		}
+		if(possibleNodes[j]->getLeftFull() != hasLeft)
+		{
+			possibleNodes.erase(possibleNodes.begin() + j);
+			j--;
+			continue;
+		}
       }
       //do we need to move again
       if(possibleNodes.size() > 1)
       {
-	//printf("ran\n");
-	//favor up 1 and right 2
-	if(hasUp && (lastMove & 4) != 4)
-	{
-	  printf("went up\n");
-	  lastMove |= 1;
-	  pos.y += 60;
-	  for(int z=0; z < possibleNodes.size(); z++)
-	  {
-	    possibleNodes[z] = possibleNodes[z]->getUp();
-	  }
-	}
-	else if(hasRight && (lastMove & 8) != 8)
-	{
-	  printf("went right\n");
-	  lastMove |= 2;
-	  pos.x += 60;
-	  for(int z=0; z < possibleNodes.size(); z++)
-	  {
-	    possibleNodes[z] = possibleNodes[z]->getRight();
-	  }
-	}
-	else if(hasDown && (lastMove & 1) != 1)
-	{
-	  lastMove |= 4;
-	  printf("went down\n");
-	  pos.y -= 60;
-	  for(int z=0; z < possibleNodes.size(); z++)
-	  {
-	    possibleNodes[z] = possibleNodes[z]->getDown();
-	  }
-	}
-	else if(hasLeft && (lastMove & 2) != 2)
-	{
-	  lastMove |= 8;
-	  printf("went left\n");
-	  pos.x -= 60;
-	  for(int z=0; z < possibleNodes.size(); z++)
-	  {
-	    possibleNodes[z] = possibleNodes[z]->getLeft();
-	  }
-	}
-	else
-	{
-	  //down first
-	  if((lastMove & 4) != 4)
-	  {
-	    lastMove &= ~1;
-	    lastMove |= 4;
-	  }
-	  else if((lastMove & 8) != 8)
-	  {
-	    lastMove &= ~2;
-	    lastMove |= 8;
-	  }
-	  else
-	  {
-	    lastMove = 0;
-	  }
-	}
+		//printf("ran\n");
+		//favor up 1 and right 2
+		if(hasUp && (lastMove & 4) != 4)
+		{
+			printf("went up\n");
+			move(UP);
+			lastMove |= 1;
+			pos.y += 60;
+			for(int z=0; z < possibleNodes.size(); z++)
+			{
+				possibleNodes[z] = possibleNodes[z]->getUp();
+			}
+		}
+		else if(hasRight && (lastMove & 8) != 8)
+		{
+			printf("went right\n");
+			lastMove |= 2;
+			move(RIGHT);
+			pos.x += 60;
+			for(int z=0; z < possibleNodes.size(); z++)
+			{
+				possibleNodes[z] = possibleNodes[z]->getRight();
+			}
+		}
+		else if(hasDown && (lastMove & 1) != 1)
+		{
+			lastMove |= 4;
+			printf("went down\n");
+			move(DOWN);
+			pos.y -= 60;
+			for(int z=0; z < possibleNodes.size(); z++)
+			{
+				possibleNodes[z] = possibleNodes[z]->getDown();
+			}
+		}
+		else if(hasLeft && (lastMove & 2) != 2)
+		{
+			lastMove |= 8;
+			printf("went left\n");
+			move(LEFT);
+			pos.x -= 60;
+			for(int z=0; z < possibleNodes.size(); z++)
+			{
+				possibleNodes[z] = possibleNodes[z]->getLeft();
+			}
+		}
+		else
+		{
+			//down first
+			if((lastMove & 4) != 4)
+			{
+				lastMove &= ~1;
+				lastMove |= 4;
+				move(DOWN);
+			}
+			else if((lastMove & 8) != 8)
+			{
+				lastMove &= ~2;
+				lastMove |= 8;
+				move(LEFT);
+			}
+			else
+			{
+				lastMove = 0;
+			}
+		}
       }
     }
     printf("found robot at %i %i\n", possibleNodes[0]->getPosition().y, possibleNodes[0]->getPosition().x);
@@ -309,120 +291,7 @@ int main (int argc, char * const argv[]) {
     cv :: namedWindow("result");
     cv :: imshow ("result", image);
     cv :: waitKey (0);
-    std::vector<Particle> p(NUM_PARTICLES);
-    //create particles
-    for(int i = 0 ; i < NUM_PARTICLES; i++)
-    {   
-      p[i] = Particle(cv::Point(50,50), 1/NUM_PARTICLES);
-    }
-    //end create
-
-    while(1) {
-        code = (char)cv::waitKey(100);
-	
-        
-	//forward
-        if (code == 'f') {
-	  draw = true;
-	  Point temp(pos.x, pos.y);
-	  //printf("DEBUG: x before: %i, y before: %i\n", pos.x, pos.y);
-          switch(angle)
-	  {
-	    case 0 :
-	      pos.x = min((pos.x + MOVEMENT), 300-33);
-	      break;
-	    case 90 :
-	      pos.y = min((pos.y + MOVEMENT), 360-33);
-	      break;
-	    case 180 :
-	      pos.x = max((pos.x - MOVEMENT), 5);
-	      break;
-	    case 270 :
-	      pos.y = max((pos.y - MOVEMENT), 5);
-	      break;
-	  }
-	  //printf("DEBUG: x after: %i, y after: %i\n", pos.x, pos.y);
-	  for(int i = 0 ; i < p.size(); i++)
-	  {   
-	    p[i].moveParticle(angle, 1, VARIANCE);
-	  }
-	  //printf("moved\n");
-        }
-        
-        //sensor
-        if (code == 's') {
-	  //get probability checked
-	  std:vector<Point> shoot(NUM_PARTICLES);
-	  Point start;
-	  Point end;
-	  double distance = 0;
-	  switch(angle)
-	  {
-	    case 0 :
-	      start = Point(pos.x + 30, pos.y + 15);
-	      end = Point(300, start.y);
-	      distance = 300 - pos.x;
-	      break;
-	    case 90 :
-	      start = Point(pos.x + 15, pos.y + 30);
-	      end = Point(start.x, 300);
-	      distance = 300 - pos.y;
-	      break;
-	    case 180 :
-	      start = Point(pos.x, pos.y + 15);
-	      end = Point(0, start.y);
-	      distance = pos.x;
-	      break;
-	    case 270 :
-	      start = Point(pos.x + 15, pos.y);
-	      end = Point(start.x, 0);
-	      distance = pos.y;
-	      break;
-	  }
-	  //printf("DEBUG: start: %i %i, end %i %i\n",start.x, start.y, end.x, end.y);
-	  for(int i = 0 ; i < NUM_PARTICLES; i++)
-	  {   
-	    shoot[i]= Point(end.x, end.y);
-	  }
-	  updateProbability(p, shoot, distance);
-	  std::vector<Particle> drawer = resampleParticles(p);
-	  //draw cross
-	  double x = 0;
-	  double y = 0;
-	  //printf("drawer size %i\n", drawer.size());
-	  for(int i = 0 ; i < drawer.size(); i++)
-	  {   
-	    Point drawerPoint = drawer[i].getPosition();
-	    x += drawerPoint.x * drawer[i].getWeight();
-	    y += drawerPoint.y * drawer[i].getWeight();
-	  }
-	  Point center(x, y);
-	  //disable drawing to see cross and line
-	  redraw(logo, pos, image, edges, doors, docks, arcReactorLoc, drawer, nodes);
-	  line(image, start, end, Scalar(255, 255, 255), 3, 8);
-	  drawCross(center, Scalar(0, 0, 255), 10);
-	  cv :: imshow ("result", image);
-	  draw = false;
-        }
-        
-        //rotate
-        if (code == 'r') {
-	  draw = true;
-	  //rotate object
-	  //printf("DEBUG: x before: %i, y before: %i %i %i\n", pos.x, pos.y, logo.cols, logo.rows);
-	  rotate(logo, 90, logo);
-	  //printf("DEBUG: x after: %i, y after: %i %i % i\n", pos.x, pos.y, logo.cols, logo.rows);
-	  angle = (angle + 90) % 360;
-	  cout << "angle = " << angle << endl;
-	  //end rotate
-        }
-        
-        if (draw) {
-	  redraw(logo, pos, image, edges, doors, docks, arcReactorLoc, p, nodes);
-        }
-        
-    }
-    
+    std::vector<Particle> p(NUM_PARTICLES);    
     return 0;
 }
 

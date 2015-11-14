@@ -9,6 +9,8 @@
 #include <opencv2/video/tracking.hpp>
 #include <opencv2/legacy/legacy.hpp>
 
+#include <cstdlib>
+
 #include <opencv/highgui.h>
 #include <opencv/cv.h>
 #include "Util.h"

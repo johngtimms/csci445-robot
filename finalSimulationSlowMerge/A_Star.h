@@ -168,7 +168,7 @@ string pathFind( const int & xStart, const int & yStart,
 	        if((xdx > x && nodes[y][x]->getRight() == NULL) || (xdx < x && nodes[y][x]->getLeft() == NULL)
 		  || (ydy > y && nodes[y][x]->getUp() == NULL) || (ydy < y && nodes[y][x]->getDown() == NULL))
 		{
-		  printf("can't go from %i %i to %i %i\n", y, x, ydy, xdx);
+		  //printf("can't go from %i %i to %i %i\n", y, x, ydy, xdx);
 	          continue;//no path to that node directly from here
 		}
                 // generate a child node
