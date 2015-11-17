@@ -146,7 +146,7 @@ string pathFind( const int & xStart, const int & yStart,
 		//printf("%i %i\n", y, x);
                 j=dir_map[x][y];
                 c='0'+(j+dir/2)%dir;
-                path=path + c;
+                path= c + path;
                 x+=dx[j];
                 y+=dy[j];
             }

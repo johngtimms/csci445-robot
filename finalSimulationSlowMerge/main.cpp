@@ -23,10 +23,6 @@ int NUM_PARTICLES = 30;
 
 #define VARIANCE 2
 #define MOVEMENT 1
-#define UP 3
-#define DOWN 0
-#define LEFT 1
-#define RIGHT 2
 
 #define drawCross( center, color, d )                  \
 line( image, cv::Point( center.x - d, center.y - d ),           \
@@ -79,6 +75,7 @@ int main (int argc, char * const argv[]) {
     Mat image;
     image = Mat::zeros(361, 301, CV_8UC3);
     image = cv::Scalar::all(0);
+	setup();
 
     std::vector<Point > edges;
     std::vector<Point > doors;
@@ -150,15 +147,22 @@ int main (int argc, char * const argv[]) {
 	  line(image, mapNode->getPosition(), mapNode->getRight()->getPosition(), Scalar(0, 255, 0), 4, 6);
       }
     }
-    
-    //cout <<"path: " << pathFind(0, 0, 4, 0, nodes) << "\n";
+    string path = pathFind(4, 4, 3, 0, nodes);
+	for(int i = 0; i < path.length(); i++)
+	{
+		int directionToGo = (int)path.at(i);
+		directionToGo -= 48;
+		cout << path.at(i) << " moved " << directionToGo << "\n";
+		move(directionToGo);
+	}
+    cout <<"path: " << pathFind(0, 0, 3, 0, nodes) << "\n";
+	return 0;
     //cout << "getUpFull " << nodes[0][0]->getUpFull() << endl;
     
     cv :: Mat logo = cv :: imread ("ironman_icon.jpg");
     srand (time(NULL));
     MapNode* node = nodes[rand() % 6][rand() % 5];
     //MapNode* node = nodes[0][0];
-    cv::Point pos(node->getPosition().x - 15, node->getPosition().y - 15);
     //figure out what node we are at without using pixel locations
     std::vector<MapNode*> possibleNodes(30);
     int i = 0;
@@ -174,14 +178,15 @@ int main (int argc, char * const argv[]) {
     //list of all nodes made, check sonar and remove impossible nodes
     while(possibleNodes.size() > 1)
     {
-	  turn(down, true)
-      int hasDown = checkSonar(0) / 60;
-	  turn(LEFT, true);
-      int hasLeft = checkSonar(0) / 60;
-	  turn(UP, true);
-      int hasUp = checkSonar(0) / 60;
-	  turn(RIGHT, true);
-      int hasRight = checkSonar(0) / 60;
+	  move(UP, true);
+      int hasUp = checkSonar(1) / 60;
+	  move(RIGHT, true);
+      int hasRight = checkSonar(1) / 60;
+	  move(DOWN, true);
+      int hasDown = checkSonar(1) / 60;
+	  move(LEFT, true);
+      int hasLeft = checkSonar(1) / 60;
+	   printf("size %i u%i d%i l%i r%i\n", possibleNodes.size(), hasDown, hasUp, hasLeft, hasRight);
 	  for(int j = 0; j < possibleNodes.size(); j++)
 	  {
 	  //remove nodes that dont match this
@@ -210,6 +215,8 @@ int main (int argc, char * const argv[]) {
 			continue;
 		}
       }
+	  if(possibleNodes.size() == 0)
+		  printf("error\n");
       //do we need to move again
       if(possibleNodes.size() > 1)
       {
@@ -220,7 +227,6 @@ int main (int argc, char * const argv[]) {
 			printf("went up\n");
 			move(UP);
 			lastMove |= 1;
-			pos.y += 60;
 			for(int z=0; z < possibleNodes.size(); z++)
 			{
 				possibleNodes[z] = possibleNodes[z]->getUp();
@@ -231,7 +237,6 @@ int main (int argc, char * const argv[]) {
 			printf("went right\n");
 			lastMove |= 2;
 			move(RIGHT);
-			pos.x += 60;
 			for(int z=0; z < possibleNodes.size(); z++)
 			{
 				possibleNodes[z] = possibleNodes[z]->getRight();
@@ -242,7 +247,6 @@ int main (int argc, char * const argv[]) {
 			lastMove |= 4;
 			printf("went down\n");
 			move(DOWN);
-			pos.y -= 60;
 			for(int z=0; z < possibleNodes.size(); z++)
 			{
 				possibleNodes[z] = possibleNodes[z]->getDown();
@@ -253,7 +257,6 @@ int main (int argc, char * const argv[]) {
 			lastMove |= 8;
 			printf("went left\n");
 			move(LEFT);
-			pos.x -= 60;
 			for(int z=0; z < possibleNodes.size(); z++)
 			{
 				possibleNodes[z] = possibleNodes[z]->getLeft();
@@ -281,6 +284,7 @@ int main (int argc, char * const argv[]) {
 		}
       }
     }
+	cv::Point pos(possibleNodes[0]->getPosition().x - 15, possibleNodes[0]->getPosition().y - 15);
     printf("found robot at %i %i\n", possibleNodes[0]->getPosition().y, possibleNodes[0]->getPosition().x);
     if(possibleNodes.size() > 1)
       printf("found robot at %i %i\n", possibleNodes[1]->getPosition().y, possibleNodes[1]->getPosition().x);

@@ -10,10 +10,7 @@ find_package( OpenCV REQUIRED )
 #add_library(mylib ${HEADER_FILES})
 #add_executable(particle main.cpp ${HEADER_FILES})
 
-INCLUDE_DIRECTORIES( ${CMAKE_CURRENT_SOURCE_DIR}/include )
-link_directories( ${CMAKE_BINARY_DIR}/bin)
-
-add_executable(particle main.cpp Util.h Particle.h)
+add_executable(particle main.cpp Util.h Particle.h robot.h)
 
 
-target_link_libraries(particle ${OpenCV_LIBS})
+target_link_libraries(particle /opt/vc/lib/libmmal_core.so /opt/vc/lib/libmmal_util.so /opt/vc/lib/libmmal_vc_client.so /opt/vc/lib/libvcos.so /opt/vc/lib/libbcm_host.so wiringPi pthread ${OpenCV_LIBS})

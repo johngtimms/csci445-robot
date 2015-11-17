@@ -9,6 +9,10 @@
 #define MIN_ERROR 20
 #define ZERO 153
 #define  RADIUS 150 //need to set this
+#define UP 1
+#define DOWN 3
+#define LEFT 2
+#define RIGHT 0
 
 using namespace std;
 
@@ -153,11 +157,11 @@ void turn(bool left)
 	do
 	{
 		setSpeed(fp, 170, ZERO - 170 - ZERO);
-		delay(100);
+		delay(50);
 		setSpeed(fp, 0, 0);
 	}
 	while(forward - getCMGood() > 10);
-	if(left)
+	if(!left)
 	{
 		setSpeed(fp, 180, 180);
 	}
@@ -176,67 +180,70 @@ void turn(bool left)
 */
 void move(int dir, bool turnOnly)
 {
-	static int currDir = 3;
+	static int currDir = UP;
 	static int left = checkSonar(0);
 	static int right = checkSonar(2);
 	//start of regular logic
 	if(currDir != dir)
 	{
 		//turn logic to get in right direction
-		if((dir == 0 && currDir == 3) || (currDir == 0 && dir == 3) || (currDir = 1 && dir == 2) || (currDir == 2 && dir == 1))
+		if(((dir == DOWN) && (currDir == UP) || (currDir == DOWN) && (dir == UP)) ||
+			((currDir == LEFT) && (dir == RIGHT)) || ((currDir == RIGHT) && (dir == LEFT)))
 		{
 			//need to rotate 180
 			turn(true);
 			turn(true);
 		}
-		else if(dir == 1)
+		else if(dir == LEFT)
 		{
 			//need to go to right?
-			if(currDir == 0)
+			if(currDir == UP)
 				turn(false);
 			else
 				turn(true);
 		}
-		else if(dir == 2)
+		else if(dir == RIGHT)
 		{
-			if(currDir == 3)
-				turn(false);
-			else
+			if(currDir == UP)
 				turn(true);
-		}
-		else if(dir == 0)
-		{
-			if(currDir == 2)
-				turn(false);
 			else
-				turn(true);
+				turn(false);
 		}
-		else if(dir == 3)
+		else if(dir == DOWN)
 		{
-			if(currDir == 1)
+			if(currDir == RIGHT)
+				turn(true);
+			else
+				turn(false);
+		}
+		else if(dir == UP)
+		{
+			if(currDir == RIGHT)
 				turn(false);
 			else
 				turn(true);
 		}
 	}
+	currDir = dir;
 	if(turnOnly)
 		return;
-	currDir = dir;
 	//move forward now
-	int totalTime = 3000;
+	int totalTime = 2000;
 	for(int i = 0; i < totalTime; i = i + totalTime/10)
 	{
 		int newLeft = checkSonar(0);
+		newLeft = newLeft % 61;
 		if(newLeft - left > 5)
 		{
 			//more than 5 away, angle a bit left
-			setSpeed(fp, 180, 180);//probably left
-			delay(50);
+			setSpeed(fp, ZERO - 180 - ZERO, ZERO - 180 - ZERO);//probably left
+			delay(40);
 		}
 		else if(newLeft - left < -5)
 		{
-			setSpeed(fp, ZERO - 180 - ZERO, ZERO - 180 - ZERO);//probably right
-			delay(50);
+			//probably right
+			setSpeed(fp, 180, 180);
+			delay(40);
 		}
 		setSpeed(fp, 0, 0);
 		setSpeed(fp, 170, ZERO - 170 - ZERO);
