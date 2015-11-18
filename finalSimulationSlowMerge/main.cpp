@@ -24,6 +24,8 @@ int NUM_PARTICLES = 30;
 
 #define VARIANCE 2
 #define MOVEMENT 1
+#define CAMERA_TRIES_MAX 10
+#define IMAGE_THRES_REQ 5000
 
 #define drawCross( center, color, d )                  \
 line( image, cv::Point( center.x - d, center.y - d ),           \
@@ -293,15 +295,6 @@ int main (int argc, char * const argv[]) {
 
     namedWindow("Control", CV_WINDOW_AUTOSIZE); //create a window called "Control"
 
-    int iLowH = 122;
-	int iHighH = 179;
-
-	int iLowS = 73; 
-	int iHighS = 255;
-
-	int iLowV = 60;
-	int iHighV = 255;
-
 	//Capture a temporary image from the camera
 	Mat imgTmp;
     imgTmp = Mat::zeros(301, 301, CV_8UC3);
@@ -333,6 +326,9 @@ int main (int argc, char * const argv[]) {
 			case 2:
 				toVisit = nodes[3][2];
 				break;
+			case 3:
+				cout << "Visited all locations, missed a lab somewhere probably, error and ending\n";
+				return 0;
 		}
 		//move to node we are visiting
 		node = node->traverse(toVisit, nodes);
@@ -342,43 +338,60 @@ int main (int argc, char * const argv[]) {
 		//camera check
 		if(!visitedA)
 		{
-			Mat imgOriginal;
-
-			bool bSuccess = cap.read(imgOriginal); // read a new frame from video
-
-			if (!bSuccess) //if not success, break loop
+			bool found = false;
+			for(int tries = 0; tries < CAMERA_TRIES_MAX; tries++)
 			{
-				cout << "Cannot read a frame from video stream" << endl;
-				break;
-			}
+				Mat imgOriginal;
 
-			Mat imgHSV;
+				bool bSuccess = cap.read(imgOriginal); // read a new frame from video
 
-			cvtColor(imgOriginal, imgHSV, COLOR_BGR2HSV); //Convert the captured frame from BGR to HSV
+				if (!bSuccess) //if not success, break loop
+				{
+					cout << "Cannot read a frame from video stream" << endl;
+					return 0;
+				}
+
+				Mat imgHSV;
+
+				cvtColor(imgOriginal, imgHSV, COLOR_BGR2HSV); //Convert the captured frame from BGR to HSV
  
-			Mat imgThresholded;
+				Mat imgThresholded;
+				
+				int iLowH = 122;
+				int iHighH = 179;
 
-			inRange(imgHSV, Scalar(iLowH, iLowS, iLowV), Scalar(iHighH, iHighS, iHighV), imgThresholded); //Threshold the image
+				int iLowS = 73; 
+				int iHighS = 255;
+
+				int iLowV = 60;
+				int iHighV = 255;
+
+				inRange(imgHSV, Scalar(iLowH, iLowS, iLowV), Scalar(iHighH, iHighS, iHighV), imgThresholded); //Threshold the image
       
-			//morphological opening (removes small objects from the foreground)
-			erode(imgThresholded, imgThresholded, getStructuringElement(MORPH_ELLIPSE, Size(5, 5)) );
-			dilate( imgThresholded, imgThresholded, getStructuringElement(MORPH_ELLIPSE, Size(5, 5)) ); 
+				//morphological opening (removes small objects from the foreground)
+				erode(imgThresholded, imgThresholded, getStructuringElement(MORPH_ELLIPSE, Size(5, 5)) );
+				dilate( imgThresholded, imgThresholded, getStructuringElement(MORPH_ELLIPSE, Size(5, 5)) ); 
 
-			//morphological closing (removes small holes from the foreground)
-			dilate( imgThresholded, imgThresholded, getStructuringElement(MORPH_ELLIPSE, Size(5, 5)) ); 
-			erode(imgThresholded, imgThresholded, getStructuringElement(MORPH_ELLIPSE, Size(5, 5)) );
+				//morphological closing (removes small holes from the foreground)
+				dilate( imgThresholded, imgThresholded, getStructuringElement(MORPH_ELLIPSE, Size(5, 5)) ); 
+				erode(imgThresholded, imgThresholded, getStructuringElement(MORPH_ELLIPSE, Size(5, 5)) );
 	
-			//Calculate the moments of the thresholded image
-			Moments oMoments = moments(imgThresholded);
+				//Calculate the moments of the thresholded image
+				Moments oMoments = moments(imgThresholded);
 
-			double dM01 = oMoments.m01;
-			double dM10 = oMoments.m10;
-			double dArea = oMoments.m00;
+				double dM01 = oMoments.m01;
+				double dM10 = oMoments.m10;
+				double dArea = oMoments.m00;
 			
-			bool found = dArea > 5000;
+				found = dArea > IMAGE_THRES_REQ;
+				
+				if(found)
+					break;
+			}
 			
 			if(found)
 			{
+				cout << "Found virus A, going to lab A\n";
 				node = node->traverse(nodes[4][0], nodes);
 				redrawMacro();
 				visitedA = true;
@@ -387,43 +400,61 @@ int main (int argc, char * const argv[]) {
 		}
 		if(!visitedB)
 		{
-			Mat imgOriginal;
-
-			bool bSuccess = cap.read(imgOriginal); // read a new frame from video
-
-			if (!bSuccess) //if not success, break loop
+			bool found = false;
+			for(int tries = 0; tries < CAMERA_TRIES_MAX; tries++)
 			{
-				cout << "Cannot read a frame from video stream" << endl;
-				break;
-			}
+				Mat imgOriginal;
 
-			Mat imgHSV;
+				bool bSuccess = cap.read(imgOriginal); // read a new frame from video
 
-			cvtColor(imgOriginal, imgHSV, COLOR_BGR2HSV); //Convert the captured frame from BGR to HSV
+				if (!bSuccess) //if not success, break loop
+				{
+					cout << "Cannot read a frame from video stream" << endl;
+					return 0;
+				}
+
+				Mat imgHSV;
+
+				cvtColor(imgOriginal, imgHSV, COLOR_BGR2HSV); //Convert the captured frame from BGR to HSV
  
-			Mat imgThresholded;
+				Mat imgThresholded;
+				
+				//red?
+				int iLowH = 122;
+				int iHighH = 179;
 
-			inRange(imgHSV, Scalar(iLowH, iLowS, iLowV), Scalar(iHighH, iHighS, iHighV), imgThresholded); //Threshold the image
+				int iLowS = 73; 
+				int iHighS = 255;
+
+				int iLowV = 60;
+				int iHighV = 255;
+
+				inRange(imgHSV, Scalar(iLowH, iLowS, iLowV), Scalar(iHighH, iHighS, iHighV), imgThresholded); //Threshold the image
       
-			//morphological opening (removes small objects from the foreground)
-			erode(imgThresholded, imgThresholded, getStructuringElement(MORPH_ELLIPSE, Size(5, 5)) );
-			dilate( imgThresholded, imgThresholded, getStructuringElement(MORPH_ELLIPSE, Size(5, 5)) ); 
+				//morphological opening (removes small objects from the foreground)
+				erode(imgThresholded, imgThresholded, getStructuringElement(MORPH_ELLIPSE, Size(5, 5)) );
+				dilate( imgThresholded, imgThresholded, getStructuringElement(MORPH_ELLIPSE, Size(5, 5)) ); 
 
-			//morphological closing (removes small holes from the foreground)
-			dilate( imgThresholded, imgThresholded, getStructuringElement(MORPH_ELLIPSE, Size(5, 5)) ); 
-			erode(imgThresholded, imgThresholded, getStructuringElement(MORPH_ELLIPSE, Size(5, 5)) );
+				//morphological closing (removes small holes from the foreground)
+				dilate( imgThresholded, imgThresholded, getStructuringElement(MORPH_ELLIPSE, Size(5, 5)) ); 
+				erode(imgThresholded, imgThresholded, getStructuringElement(MORPH_ELLIPSE, Size(5, 5)) );
 	
-			//Calculate the moments of the thresholded image
-			Moments oMoments = moments(imgThresholded);
+				//Calculate the moments of the thresholded image
+				Moments oMoments = moments(imgThresholded);
 
-			double dM01 = oMoments.m01;
-			double dM10 = oMoments.m10;
-			double dArea = oMoments.m00;
+				double dM01 = oMoments.m01;
+				double dM10 = oMoments.m10;
+				double dArea = oMoments.m00;
 			
-			bool found = dArea > 5000;
+				found = dArea > IMAGE_THRES_REQ;
+				
+				if(found)
+					break;
+			}
 			
 			if(found)
 			{
+				cout << "Found virus B, going to lab B\n";
 				node = node->traverse(nodes[4][4], nodes);
 				visitedB = true;
 				redrawMacro();

@@ -13,6 +13,7 @@
 #define DOWN 3
 #define LEFT 2
 #define RIGHT 0
+#define DISABLE_MOVE false
 
 using namespace std;
 
@@ -153,6 +154,8 @@ int checkSonar(int dir)
 
 void turn(bool left)
 {
+	if(DISABLE_MOVE)
+		return;
 	int forward = checkSonar(1);
 	do
 	{
@@ -180,6 +183,8 @@ void turn(bool left)
 */
 void move(int dir, bool turnOnly)
 {
+	if(DISABLE_MOVE)
+		return;
 	static int currDir = UP;
 	static int left = checkSonar(0);
 	static int right = checkSonar(2);
