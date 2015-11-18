@@ -3,6 +3,8 @@
 
 #include <iostream>
 #include <vector>
+#include "A_Star.h"
+#include "robot.h"
 
 #include <opencv2/opencv.hpp>
 #include <opencv2/highgui/highgui.hpp>
@@ -26,14 +28,17 @@ private:
     MapNode *upNode;
     MapNode *rightNode;
     MapNode *leftNode;
+	int posX, posY;
     
 public:
-    MapNode(cv::Point start) {
+    MapNode(cv::Point start, int x, int y) {
         location = start;
 	downNode = NULL;
 	upNode = NULL;
 	rightNode = NULL;
 	leftNode = NULL;
+	posX = x;
+	posY = y;
     }
     ~MapNode(){}
     
@@ -125,8 +130,41 @@ public:
       }
       return ret;
     }
+	
+	int getX()
+	{
+		return posX;
+	}
+	
+	int getY()
+	{
+		return posY;
+	}
+	
+	MapNode* traverse(MapNode* node, MapNode* nodes[][5])
+	{
+		string path = pathFind(posX, posY, node->getX(), node->getY(), nodes);
+		cout << "Going from x:" << posX << " y:" << posY << " to x:" << node->getX() << " y:" << node->getY() << " using path " << path << "\n";
+		for(int i = 0; i < path.length(); i++)
+		{
+			cout << "Moving in direction " << path.at(i) << "\n";
+			move(((int)path.at(i)) - '0');
+		}
+		cout << "Should be at position\n";
+		return node;
+	}
     
-    cv::Point getPosition(){return location;}  
+    cv::Point getPosition(){return location;} 
+
+	int getPosX()
+	{
+		return location.x - 15;
+	}
+	
+	int getPosY()
+	{
+		return location.y - 15;
+	}
     
 };
 #endif

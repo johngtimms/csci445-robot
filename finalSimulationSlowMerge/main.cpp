@@ -14,6 +14,7 @@
 #include "Node.h"
 #include "A_Star.h"
 #include "robot.h"
+#include "opencv2/imgproc/imgproc.hpp"
 
 using namespace cv;
 using namespace std;
@@ -29,6 +30,10 @@ line( image, cv::Point( center.x - d, center.y - d ),           \
 cv::Point( center.x + d, center.y + d ), color, 2, CV_AA, 0);   \
 line( image, cv::Point( center.x + d, center.y - d ),           \
 cv::Point( center.x - d, center.y + d ), color, 2, CV_AA, 0 )
+
+#define redrawMacro() pos.x = node->getPosX(); \
+		pos.y = node->getPosY(); \
+		redraw(image, pos, cv::Mat image, edges, doors, docks, arcReactorLoc, NULL, nodes)
 
 
 void rotate (cv::Mat& src, cv::Mat& dst) {
@@ -56,19 +61,6 @@ void redraw(cv::Mat logo, Point pos, cv::Mat image, std::vector<Point> &edges, s
 void updateProbability(std::vector<Particle> &particles, std::vector<cv::Point> &particlesShoot, double distance);
 std::vector<Particle> resampleParticles(std::vector<Particle>& oldParticles);
 
-/**
- * Rotate an image
- * From: http://opencv-code.com/quick-tips/how-to-rotate-image-in-opencv/
- */
-void rotate(cv::Mat& src, double angle, cv::Mat& dst)
-{
-    int len = std::max(src.cols, src.rows);
-    cv::Point2f pt(len/2., len/2.);
-    cv::Mat r = cv::getRotationMatrix2D(pt, angle, 1.0);
-
-    cv::warpAffine(src, dst, r, cv::Size(len, len));
-}
-
 int main (int argc, char * const argv[]) {
     char code;
     bool draw = true;
@@ -92,7 +84,7 @@ int main (int argc, char * const argv[]) {
       for(int x = 0; x < 5; x++)
       {
 		cv::Point* nodeLoc = new cv::Point((x * 60) + 30, (y * 60) + 30);
-		MapNode* mapNode = new MapNode(*nodeLoc);
+		MapNode* mapNode = new MapNode(*nodeLoc, x, y);
 		nodes[y][x] = mapNode;
 	  }
     }
@@ -147,23 +139,8 @@ int main (int argc, char * const argv[]) {
 	  line(image, mapNode->getPosition(), mapNode->getRight()->getPosition(), Scalar(0, 255, 0), 4, 6);
       }
     }
-    string path = pathFind(4, 4, 3, 0, nodes);
-	for(int i = 0; i < path.length(); i++)
-	{
-		int directionToGo = (int)path.at(i);
-		directionToGo -= 48;
-		cout << path.at(i) << " moved " << directionToGo << "\n";
-		move(directionToGo);
-	}
-    cout <<"path: " << pathFind(0, 0, 3, 0, nodes) << "\n";
-	return 0;
-    //cout << "getUpFull " << nodes[0][0]->getUpFull() << endl;
     
     cv :: Mat logo = cv :: imread ("ironman_icon.jpg");
-    srand (time(NULL));
-    MapNode* node = nodes[rand() % 6][rand() % 5];
-    //MapNode* node = nodes[0][0];
-    //figure out what node we are at without using pixel locations
     std::vector<MapNode*> possibleNodes(30);
     int i = 0;
     for(int y = 0; y < 6; y++)
@@ -173,7 +150,7 @@ int main (int argc, char * const argv[]) {
 		possibleNodes[i++] = nodes[y][x];
       }
     }
-    printf("init size %i\n", possibleNodes.size());
+    printf("init size of possible locactions %i\n", possibleNodes.size());
     int lastMove = 0;
     //list of all nodes made, check sonar and remove impossible nodes
     while(possibleNodes.size() > 1)
@@ -216,7 +193,10 @@ int main (int argc, char * const argv[]) {
 		}
       }
 	  if(possibleNodes.size() == 0)
+	  {
 		  printf("error\n");
+		  return 0;
+	  }
       //do we need to move again
       if(possibleNodes.size() > 1)
       {
@@ -284,10 +264,9 @@ int main (int argc, char * const argv[]) {
 		}
       }
     }
-	cv::Point pos(possibleNodes[0]->getPosition().x - 15, possibleNodes[0]->getPosition().y - 15);
-    printf("found robot at %i %i\n", possibleNodes[0]->getPosition().y, possibleNodes[0]->getPosition().x);
-    if(possibleNodes.size() > 1)
-      printf("found robot at %i %i\n", possibleNodes[1]->getPosition().y, possibleNodes[1]->getPosition().x);
+	MapNode* node = possibleNodes[0];
+	cv::Point pos(node->getPosX(), node->getPosY());
+    printf("found robot at %i %i\n", node->getPosX(), node->getPosY());
     //should know where we are by this point
     cv :: Mat imageROI;
     imageROI = image (cv :: Rect (pos.x, pos.y, logo.cols, logo.rows));
@@ -295,7 +274,164 @@ int main (int argc, char * const argv[]) {
     cv :: namedWindow("result");
     cv :: imshow ("result", image);
     cv :: waitKey (0);
-    std::vector<Particle> p(NUM_PARTICLES);    
+    std::vector<Particle> p(NUM_PARTICLES);
+	
+	//**********************
+	//OPEN UP VIDEO STUFF
+	//**********************
+	
+	VideoCapture cap(0); //capture the video from webcam
+
+    if ( !cap.isOpened() )  // if not success, exit program
+    {
+         cout << "Cannot open the web cam" << endl;
+         return -1;
+    }
+
+	cap.set(CV_CAP_PROP_FRAME_WIDTH, 160);
+	cap.set(CV_CAP_PROP_FRAME_HEIGHT, 120);
+
+    namedWindow("Control", CV_WINDOW_AUTOSIZE); //create a window called "Control"
+
+    int iLowH = 122;
+	int iHighH = 179;
+
+	int iLowS = 73; 
+	int iHighS = 255;
+
+	int iLowV = 60;
+	int iHighV = 255;
+
+	//Capture a temporary image from the camera
+	Mat imgTmp;
+    imgTmp = Mat::zeros(301, 301, CV_8UC3);
+
+	cap.read(imgTmp); 
+
+	//Create a black image with the size as the camera output
+	Mat imgLines = Mat::zeros( imgTmp.size(), CV_8UC3 );;
+	
+	//********************
+	//end camera open
+	//********************
+	
+	//start doing tasks
+	int positionCheck = 0;
+	bool visitedA = false;
+	bool visitedB = false;
+	while(!visitedA || !visitedB)
+	{
+		MapNode* toVisit = NULL;
+		switch(positionCheck)
+		{
+			case 0:
+				toVisit = nodes[0][2];
+				break;
+			case 1:
+				toVisit = nodes[0][3];
+				break;
+			case 2:
+				toVisit = nodes[3][2];
+				break;
+		}
+		//move to node we are visiting
+		node = node->traverse(toVisit, nodes);
+		redrawMacro();
+		positionCheck++; //setup for next run if necessary
+		
+		//camera check
+		if(!visitedA)
+		{
+			Mat imgOriginal;
+
+			bool bSuccess = cap.read(imgOriginal); // read a new frame from video
+
+			if (!bSuccess) //if not success, break loop
+			{
+				cout << "Cannot read a frame from video stream" << endl;
+				break;
+			}
+
+			Mat imgHSV;
+
+			cvtColor(imgOriginal, imgHSV, COLOR_BGR2HSV); //Convert the captured frame from BGR to HSV
+ 
+			Mat imgThresholded;
+
+			inRange(imgHSV, Scalar(iLowH, iLowS, iLowV), Scalar(iHighH, iHighS, iHighV), imgThresholded); //Threshold the image
+      
+			//morphological opening (removes small objects from the foreground)
+			erode(imgThresholded, imgThresholded, getStructuringElement(MORPH_ELLIPSE, Size(5, 5)) );
+			dilate( imgThresholded, imgThresholded, getStructuringElement(MORPH_ELLIPSE, Size(5, 5)) ); 
+
+			//morphological closing (removes small holes from the foreground)
+			dilate( imgThresholded, imgThresholded, getStructuringElement(MORPH_ELLIPSE, Size(5, 5)) ); 
+			erode(imgThresholded, imgThresholded, getStructuringElement(MORPH_ELLIPSE, Size(5, 5)) );
+	
+			//Calculate the moments of the thresholded image
+			Moments oMoments = moments(imgThresholded);
+
+			double dM01 = oMoments.m01;
+			double dM10 = oMoments.m10;
+			double dArea = oMoments.m00;
+			
+			bool found = dArea > 5000;
+			
+			if(found)
+			{
+				node = node->traverse(nodes[4][0], nodes);
+				redrawMacro();
+				visitedA = true;
+				continue;
+			}
+		}
+		if(!visitedB)
+		{
+			Mat imgOriginal;
+
+			bool bSuccess = cap.read(imgOriginal); // read a new frame from video
+
+			if (!bSuccess) //if not success, break loop
+			{
+				cout << "Cannot read a frame from video stream" << endl;
+				break;
+			}
+
+			Mat imgHSV;
+
+			cvtColor(imgOriginal, imgHSV, COLOR_BGR2HSV); //Convert the captured frame from BGR to HSV
+ 
+			Mat imgThresholded;
+
+			inRange(imgHSV, Scalar(iLowH, iLowS, iLowV), Scalar(iHighH, iHighS, iHighV), imgThresholded); //Threshold the image
+      
+			//morphological opening (removes small objects from the foreground)
+			erode(imgThresholded, imgThresholded, getStructuringElement(MORPH_ELLIPSE, Size(5, 5)) );
+			dilate( imgThresholded, imgThresholded, getStructuringElement(MORPH_ELLIPSE, Size(5, 5)) ); 
+
+			//morphological closing (removes small holes from the foreground)
+			dilate( imgThresholded, imgThresholded, getStructuringElement(MORPH_ELLIPSE, Size(5, 5)) ); 
+			erode(imgThresholded, imgThresholded, getStructuringElement(MORPH_ELLIPSE, Size(5, 5)) );
+	
+			//Calculate the moments of the thresholded image
+			Moments oMoments = moments(imgThresholded);
+
+			double dM01 = oMoments.m01;
+			double dM10 = oMoments.m10;
+			double dArea = oMoments.m00;
+			
+			bool found = dArea > 5000;
+			
+			if(found)
+			{
+				node = node->traverse(nodes[4][4], nodes);
+				visitedB = true;
+				redrawMacro();
+				continue;
+			}
+		}
+	}
+	printf("robot should be done\n");
     return 0;
 }
 
@@ -373,10 +509,10 @@ void redraw(cv::Mat logo, Point pos, cv::Mat image, std::vector<Point> &edges, s
   cv :: Mat imageROI;
   imageROI = image (cv :: Rect (pos.x, pos.y, logo.cols, logo.rows));
   logo.copyTo (imageROI);
-  for(int i = 0; i < p.size(); i++)
-  {
-    drawCross(p[i].getPosition(), Scalar(0, 255, 0), 5);
-  }
+ // for(int i = 0; i < p.size(); i++)
+ // {
+ //   drawCross(p[i].getPosition(), Scalar(0, 255, 0), 5);
+ // }
   cv :: imshow ("result", image);
 }
 
