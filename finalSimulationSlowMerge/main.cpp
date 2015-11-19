@@ -25,7 +25,7 @@ int NUM_PARTICLES = 30;
 #define VARIANCE 2
 #define MOVEMENT 1
 #define CAMERA_TRIES_MAX 10
-#define IMAGE_THRES_REQ 5000
+#define IMAGE_THRES_REQ 12500
 
 #define drawCross( center, color, d )                  \
 line( image, cv::Point( center.x - d, center.y - d ),           \
@@ -35,7 +35,8 @@ cv::Point( center.x - d, center.y + d ), color, 2, CV_AA, 0 )
 
 #define redrawMacro() pos.x = node->getPosX(); \
 		pos.y = node->getPosY(); \
-		redraw(image, pos, cv::Mat image, edges, doors, docks, arcReactorLoc, NULL, nodes)
+		redraw(logo, pos, image, edges, doors, docks, arcReactorLoc, nodes); \
+		waitKey(0)
 
 
 void rotate (cv::Mat& src, cv::Mat& dst) {
@@ -59,7 +60,7 @@ void rotate (cv::Mat& src, cv::Mat& dst) {
 
 void redraw(cv::Mat logo, Point pos, cv::Mat image, std::vector<Point> &edges, std::vector<Point> &virus,
                   std::vector<Point> &labA,
-                  Point &labB, std::vector<Particle> &p, MapNode* nodes[][5]);
+                  Point &labB, MapNode* nodes[][5]);
 void updateProbability(std::vector<Particle> &particles, std::vector<cv::Point> &particlesShoot, double distance);
 std::vector<Particle> resampleParticles(std::vector<Particle>& oldParticles);
 
@@ -77,6 +78,14 @@ int main (int argc, char * const argv[]) {
     Point arcReactorLoc;
     parseFile(edges,doors,docks,arcReactorLoc);
     drawMap(image, edges, doors, docks, arcReactorLoc);
+	cv::Point pos(15, 15);
+	cv :: Mat logo = cv :: imread ("ironman_icon.jpg");
+	cv :: Mat imageROI;
+    imageROI = image (cv :: Rect (pos.x, pos.y, logo.cols, logo.rows));
+    logo.copyTo (imageROI);
+    cv :: namedWindow("result");
+    cv :: imshow ("result", image);
+	cv::waitKey(0);
     
     MapNode* nodes[6][5];
     
@@ -141,8 +150,6 @@ int main (int argc, char * const argv[]) {
 	  line(image, mapNode->getPosition(), mapNode->getRight()->getPosition(), Scalar(0, 255, 0), 4, 6);
       }
     }
-    
-    cv :: Mat logo = cv :: imread ("ironman_icon.jpg");
     std::vector<MapNode*> possibleNodes(30);
     int i = 0;
     for(int y = 0; y < 6; y++)
@@ -267,16 +274,10 @@ int main (int argc, char * const argv[]) {
       }
     }
 	MapNode* node = possibleNodes[0];
-	cv::Point pos(node->getPosX(), node->getPosY());
     printf("found robot at %i %i\n", node->getPosX(), node->getPosY());
     //should know where we are by this point
-    cv :: Mat imageROI;
-    imageROI = image (cv :: Rect (pos.x, pos.y, logo.cols, logo.rows));
-    logo.copyTo (imageROI);
-    cv :: namedWindow("result");
-    cv :: imshow ("result", image);
-    cv :: waitKey (0);
-    std::vector<Particle> p(NUM_PARTICLES);
+	
+	redrawMacro();
 	
 	//**********************
 	//OPEN UP VIDEO STUFF
@@ -293,7 +294,7 @@ int main (int argc, char * const argv[]) {
 	cap.set(CV_CAP_PROP_FRAME_WIDTH, 160);
 	cap.set(CV_CAP_PROP_FRAME_HEIGHT, 120);
 
-    namedWindow("Control", CV_WINDOW_AUTOSIZE); //create a window called "Control"
+   // namedWindow("Control", CV_WINDOW_AUTOSIZE); //create a window called "Control"
 
 	//Capture a temporary image from the camera
 	Mat imgTmp;
@@ -312,6 +313,7 @@ int main (int argc, char * const argv[]) {
 	int positionCheck = 0;
 	bool visitedA = false;
 	bool visitedB = false;
+	bool visited2 = false;
 	while(!visitedA || !visitedB)
 	{
 		MapNode* toVisit = NULL;
@@ -330,8 +332,22 @@ int main (int argc, char * const argv[]) {
 				cout << "Visited all locations, missed a lab somewhere probably, error and ending\n";
 				return 0;
 		}
+		if(positionCheck == 1)
+		{
+			string tempP = pathFind(node->getX(), node->getY(), toVisit->getX(), toVisit->getY(), nodes);
+				toVisit = nodes[3][2];
+				if(tempP.length() > pathFind(node->getX(), node->getY(), toVisit->getX(), toVisit->getY(), nodes).length())
+					visited2 = true;
+				else
+					toVisit = nodes[0][3];
+		}
+		else if(positionCheck == 2)
+			if(!visited2)
+					toVisit = nodes[3][2];
+				else
+					toVisit = nodes[0][3];
 		//move to node we are visiting
-		node = node->traverse(toVisit, nodes);
+		node = node->traverse(toVisit, pathFind(node->getX(), node->getY(), toVisit->getX(), toVisit->getY(), nodes));
 		redrawMacro();
 		positionCheck++; //setup for next run if necessary
 		
@@ -339,6 +355,9 @@ int main (int argc, char * const argv[]) {
 		if(!visitedA)
 		{
 			bool found = false;
+			bool lookLeft = false;
+			bool lookRight = false;
+			bool lookStr = false;
 			for(int tries = 0; tries < CAMERA_TRIES_MAX; tries++)
 			{
 				Mat imgOriginal;
@@ -357,13 +376,14 @@ int main (int argc, char * const argv[]) {
  
 				Mat imgThresholded;
 				
-				int iLowH = 122;
-				int iHighH = 179;
+				//booklet
+				int iLowH = 80;
+				int iHighH = 102;
 
-				int iLowS = 73; 
+				int iLowS = 32; 
 				int iHighS = 255;
 
-				int iLowV = 60;
+				int iLowV = 91;
 				int iHighV = 255;
 
 				inRange(imgHSV, Scalar(iLowH, iLowS, iLowV), Scalar(iHighH, iHighS, iHighV), imgThresholded); //Threshold the image
@@ -387,12 +407,55 @@ int main (int argc, char * const argv[]) {
 				
 				if(found)
 					break;
+				if(!lookLeft)
+				{
+					lookLeft = true;
+					setSpeed(fp, 180, 180);
+					delay(200);
+					setSpeed(fp, 0, 0);
+				}
+				else if(!lookRight)
+				{
+					lookRight = true;
+					setSpeed(fp, ZERO - 180 - ZERO, ZERO - 180 - ZERO);
+					delay(400);
+					setSpeed(fp, 0, 0);
+				}
+				else if(!lookStr)
+				{
+					lookStr = true;
+					setSpeed(fp, 180, 180);
+					delay(200);
+					setSpeed(fp, 0, 0);
+				}
 			}
+			
+						if(!lookLeft)
+				{
+					lookLeft = true;
+					setSpeed(fp, 180, 180);
+					delay(200);
+					setSpeed(fp, 0, 0);
+				}
+				if(!lookRight)
+				{
+					lookRight = true;
+					setSpeed(fp, ZERO - 180 - ZERO, ZERO - 180 - ZERO);
+					delay(400);
+					setSpeed(fp, 0, 0);
+				}
+				if(!lookStr)
+				{
+					lookStr = true;
+					setSpeed(fp, 180, 180);
+					delay(200);
+					setSpeed(fp, 0, 0);
+				}
 			
 			if(found)
 			{
 				cout << "Found virus A, going to lab A\n";
-				node = node->traverse(nodes[4][0], nodes);
+				node = node->traverse(nodes[4][0], pathFind(node->getX(), node->getY(), 0, 4, nodes));
 				redrawMacro();
 				visitedA = true;
 				continue;
@@ -401,6 +464,9 @@ int main (int argc, char * const argv[]) {
 		if(!visitedB)
 		{
 			bool found = false;
+			bool lookLeft = false;
+			bool lookRight = false;
+			bool lookStr = false;
 			for(int tries = 0; tries < CAMERA_TRIES_MAX; tries++)
 			{
 				Mat imgOriginal;
@@ -419,9 +485,9 @@ int main (int argc, char * const argv[]) {
  
 				Mat imgThresholded;
 				
-				//red?
-				int iLowH = 122;
-				int iHighH = 179;
+				//green lego
+				int iLowH = 63;
+				int iHighH = 77;
 
 				int iLowS = 73; 
 				int iHighS = 255;
@@ -450,12 +516,55 @@ int main (int argc, char * const argv[]) {
 				
 				if(found)
 					break;
+				if(!lookLeft)
+				{
+					lookLeft = true;
+					setSpeed(fp, 180, 180);
+					delay(100);
+					setSpeed(fp, 0, 0);
+				}
+				else if(!lookRight)
+				{
+					lookRight = true;
+					setSpeed(fp, ZERO - 180 - ZERO, ZERO - 180 - ZERO);
+					delay(200);
+					setSpeed(fp, 0, 0);
+				}
+				else if(!lookStr)
+				{
+					lookStr = true;
+					setSpeed(fp, 180, 180);
+					delay(100);
+					setSpeed(fp, 0, 0);
+				}
 			}
+			
+			if(!lookLeft)
+				{
+					lookLeft = true;
+					setSpeed(fp, 180, 180);
+					delay(100);
+					setSpeed(fp, 0, 0);
+				}
+				if(!lookRight)
+				{
+					lookRight = true;
+					setSpeed(fp, ZERO - 180 - ZERO, ZERO - 180 - ZERO);
+					delay(200);
+					setSpeed(fp, 0, 0);
+				}
+				if(!lookStr)
+				{
+					lookStr = true;
+					setSpeed(fp, 180, 180);
+					delay(100);
+					setSpeed(fp, 0, 0);
+				}
 			
 			if(found)
 			{
 				cout << "Found virus B, going to lab B\n";
-				node = node->traverse(nodes[4][4], nodes);
+				node = node->traverse(nodes[4][4], pathFind(node->getX(), node->getY(), 4, 4, nodes));
 				visitedB = true;
 				redrawMacro();
 				continue;
@@ -468,7 +577,7 @@ int main (int argc, char * const argv[]) {
 
 void redraw(cv::Mat logo, Point pos, cv::Mat image, std::vector<Point> &edges, std::vector<Point> &virus,
                   std::vector<Point> &labA,
-                  Point &labB, std::vector<Particle> &p, MapNode* nodes[][5])
+                  Point &labB, MapNode* nodes[][5])
 {
   static cv::Mat clear = Mat::zeros(361, 301, CV_8UC3);
   clear.copyTo(image);

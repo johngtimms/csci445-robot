@@ -1,7 +1,8 @@
 #ifndef Robot_Filter_Particle_h
-#define Robot_Particle_h
+#define Robot_Filter_Particle_h
 #include <stdio.h>
 #include <stdlib.h>
+#include <math.h>
 #include <wiringPi.h>
 
 #define TRIG 5
@@ -64,7 +65,7 @@ int getCMGood()
 		printf("reading got weird, trying again\n");
 		return getCMGood();
 	}
-	return reading1;
+	return (reading1 + reading2) / 2;
 }
 
 void setSpeed(FILE *fp, int left, int right)
@@ -154,16 +155,17 @@ int checkSonar(int dir)
 
 void turn(bool left)
 {
+	cout << "turn called\n";
 	if(DISABLE_MOVE)
 		return;
-	int forward = checkSonar(1);
+	/**int forward = checkSonar(1);
 	do
 	{
 		setSpeed(fp, 170, ZERO - 170 - ZERO);
 		delay(50);
 		setSpeed(fp, 0, 0);
 	}
-	while(forward - getCMGood() > 10);
+	while(forward - getCMGood() > 10);**/
 	if(!left)
 	{
 		setSpeed(fp, 180, 180);
@@ -172,7 +174,7 @@ void turn(bool left)
 	{
 		setSpeed(fp, ZERO - 180 - ZERO, ZERO - 180 - ZERO);
 	}
-	delay(750);
+	delay(700);
 	setSpeed(fp, 0, 0);
 }
 /**
@@ -183,6 +185,7 @@ void turn(bool left)
 */
 void move(int dir, bool turnOnly)
 {
+	cout << "move called\n";
 	if(DISABLE_MOVE)
 		return;
 	static int currDir = UP;
@@ -234,23 +237,62 @@ void move(int dir, bool turnOnly)
 		return;
 	//move forward now
 	int totalTime = 2000;
+	bool goLeft = true;
 	for(int i = 0; i < totalTime; i = i + totalTime/10)
 	{
-		int newLeft = checkSonar(0);
-		newLeft = newLeft % 61;
-		if(newLeft - left > 5)
+		int possibleLeft = !goLeft ? 100 : checkSonar(0);
+		int newLeft = possibleLeft % 60;
+		//int totalErrorPos =  + 10 * (possibleLeft/60);
+		if(possibleLeft > 60 || !goLeft)
 		{
-			//more than 5 away, angle a bit left
-			setSpeed(fp, ZERO - 180 - ZERO, ZERO - 180 - ZERO);//probably left
-			delay(40);
+			int possibleRight = checkSonar(2);
+			if(possibleRight < 60)
+			{
+				possibleRight = possibleRight % 60;
+				goLeft = false;
+				if(possibleRight > 32)
+				{
+					//more than 5 away, angle a bit left
+					setSpeed(fp, 180, 180);
+					delay(40);
+					setSpeed(fp, 0, 0);
+				}
+				else if(possibleRight < 20)
+				{
+					//probably right
+					setSpeed(fp, ZERO - 180 - ZERO, ZERO - 180 - ZERO);//probably left
+					delay(40);
+					setSpeed(fp, 0, 0);
+				}
+			}
 		}
-		else if(newLeft - left < -5)
+		if(goLeft)
+			if(newLeft > 35)
+			{
+				//more than 5 away, angle a bit left
+				setSpeed(fp, ZERO - 180 - ZERO, ZERO - 180 - ZERO);//probably left
+				delay(40);
+				setSpeed(fp, 0, 0);
+			}
+			else if(newLeft < 20)
+			{
+				//probably right
+				setSpeed(fp, 180, 180);
+				delay(40);
+				setSpeed(fp, 0, 0);
+			}
+		
+		if((i/(totalTime/10)) > 5)
 		{
-			//probably right
-			setSpeed(fp, 180, 180);
-			delay(40);
+			int forwardSon = checkSonar(1);
+			if(forwardSon < 15)
+			{
+				setSpeed(fp, 0, 0);
+				break;
+			}
 		}
 		setSpeed(fp, 0, 0);
+		delay(10);
 		setSpeed(fp, 170, ZERO - 170 - ZERO);
 		delay(totalTime/10);
 		setSpeed(fp, 0, 0);
