@@ -351,31 +351,40 @@ int main (int argc, char * const argv[]) {
 		redrawMacro();
 		positionCheck++; //setup for next run if necessary
 		
-		//camera check
-		if(!visitedA)
+		//check sonar
+		int toWallDist = checkSonar(1);
+		if(toWallDist < 20)
 		{
-			bool found = false;
-			bool lookLeft = false;
-			bool lookRight = false;
-			bool lookStr = false;
-			for(int tries = 0; tries < CAMERA_TRIES_MAX; tries++)
+			while(checkSonar(1) < 20)
 			{
-				Mat imgOriginal;
+				setSpeed(fp, ZERO - (180 - ZERO), 180);
+				delay(20);
+				setSpeed(fp, 0, 0);
+			}
+		}
+		
+		//camera check
+		bool found = false;
+		bool foundA = false;
+		bool lookLeft = false;
+		bool lookRight = false;
+		bool lookStr = false;
+		for(int tries = 0; tries < CAMERA_TRIES_MAX; tries++)
+		{
+			Mat imgOriginal;
+			bool bSuccess = cap.read(imgOriginal); // read a new frame from video
+			if (!bSuccess) //if not success, break loop
+			{
+				cout << "Cannot read a frame from video stream" << endl;
+				return 0;
+			}
 
-				bool bSuccess = cap.read(imgOriginal); // read a new frame from video
-
-				if (!bSuccess) //if not success, break loop
-				{
-					cout << "Cannot read a frame from video stream" << endl;
-					return 0;
-				}
-
-				Mat imgHSV;
-
-				cvtColor(imgOriginal, imgHSV, COLOR_BGR2HSV); //Convert the captured frame from BGR to HSV
- 
+			Mat imgHSV;
+			cvtColor(imgOriginal, imgHSV, COLOR_BGR2HSV); //Convert the captured frame from BGR to HSV
+			
+			if(!visitedA)
+			{
 				Mat imgThresholded;
-				
 				//booklet
 				int iLowH = 80;
 				int iHighH = 102;
@@ -406,83 +415,13 @@ int main (int argc, char * const argv[]) {
 				found = dArea > IMAGE_THRES_REQ;
 				
 				if(found)
+				{
+					foundA = true;
 					break;
-				if(!lookLeft)
-				{
-					lookLeft = true;
-					setSpeed(fp, 180, 180);
-					delay(200);
-					setSpeed(fp, 0, 0);
-				}
-				else if(!lookRight)
-				{
-					lookRight = true;
-					setSpeed(fp, ZERO - 180 - ZERO, ZERO - 180 - ZERO);
-					delay(400);
-					setSpeed(fp, 0, 0);
-				}
-				else if(!lookStr)
-				{
-					lookStr = true;
-					setSpeed(fp, 180, 180);
-					delay(200);
-					setSpeed(fp, 0, 0);
 				}
 			}
-			
-						if(!lookLeft)
-				{
-					lookLeft = true;
-					setSpeed(fp, 180, 180);
-					delay(200);
-					setSpeed(fp, 0, 0);
-				}
-				if(!lookRight)
-				{
-					lookRight = true;
-					setSpeed(fp, ZERO - 180 - ZERO, ZERO - 180 - ZERO);
-					delay(400);
-					setSpeed(fp, 0, 0);
-				}
-				if(!lookStr)
-				{
-					lookStr = true;
-					setSpeed(fp, 180, 180);
-					delay(200);
-					setSpeed(fp, 0, 0);
-				}
-			
-			if(found)
+			if(!visitedB && !found)
 			{
-				cout << "Found virus A, going to lab A\n";
-				node = node->traverse(nodes[4][0], pathFind(node->getX(), node->getY(), 0, 4, nodes));
-				redrawMacro();
-				visitedA = true;
-				continue;
-			}
-		}
-		if(!visitedB)
-		{
-			bool found = false;
-			bool lookLeft = false;
-			bool lookRight = false;
-			bool lookStr = false;
-			for(int tries = 0; tries < CAMERA_TRIES_MAX; tries++)
-			{
-				Mat imgOriginal;
-
-				bool bSuccess = cap.read(imgOriginal); // read a new frame from video
-
-				if (!bSuccess) //if not success, break loop
-				{
-					cout << "Cannot read a frame from video stream" << endl;
-					return 0;
-				}
-
-				Mat imgHSV;
-
-				cvtColor(imgOriginal, imgHSV, COLOR_BGR2HSV); //Convert the captured frame from BGR to HSV
- 
 				Mat imgThresholded;
 				
 				//green lego
@@ -516,59 +455,56 @@ int main (int argc, char * const argv[]) {
 				
 				if(found)
 					break;
-				if(!lookLeft)
-				{
-					lookLeft = true;
-					setSpeed(fp, 180, 180);
-					delay(100);
-					setSpeed(fp, 0, 0);
-				}
-				else if(!lookRight)
-				{
-					lookRight = true;
-					setSpeed(fp, ZERO - 180 - ZERO, ZERO - 180 - ZERO);
-					delay(200);
-					setSpeed(fp, 0, 0);
-				}
-				else if(!lookStr)
-				{
-					lookStr = true;
-					setSpeed(fp, 180, 180);
-					delay(100);
-					setSpeed(fp, 0, 0);
-				}
 			}
 			
 			if(!lookLeft)
-				{
-					lookLeft = true;
-					setSpeed(fp, 180, 180);
-					delay(100);
-					setSpeed(fp, 0, 0);
-				}
-				if(!lookRight)
-				{
-					lookRight = true;
-					setSpeed(fp, ZERO - 180 - ZERO, ZERO - 180 - ZERO);
-					delay(200);
-					setSpeed(fp, 0, 0);
-				}
-				if(!lookStr)
-				{
-					lookStr = true;
-					setSpeed(fp, 180, 180);
-					delay(100);
-					setSpeed(fp, 0, 0);
-				}
-			
-			if(found)
 			{
-				cout << "Found virus B, going to lab B\n";
-				node = node->traverse(nodes[4][4], pathFind(node->getX(), node->getY(), 4, 4, nodes));
-				visitedB = true;
-				redrawMacro();
-				continue;
+				lookLeft = true;
+				setSpeed(fp, 180, 180);
+				delay(200);
+				setSpeed(fp, 0, 0);
 			}
+			else if(!lookRight)
+			{
+				lookRight = true;
+				setSpeed(fp, ZERO - (180 - ZERO), ZERO - (180 - ZERO));
+				delay(400);
+				setSpeed(fp, 0, 0);
+			}
+			else if(!lookStr)
+			{
+				lookStr = true;
+				setSpeed(fp, 180, 180);
+				delay(200);
+				setSpeed(fp, 0, 0);
+			}
+
+		}	
+		if(found && foundA)
+		{
+			cout << "Found virus A, going to lab A\n";
+			node = node->traverse(nodes[4][0], pathFind(node->getX(), node->getY(), 0, 4, nodes));
+			redrawMacro();
+			visitedA = true;
+		}
+		else if(found)
+		{
+			cout << "Found virus B, going to lab B\n";
+			node = node->traverse(nodes[4][4], pathFind(node->getX(), node->getY(), 4, 4, nodes));
+			redrawMacro();
+			visitedB = true;
+		}
+		else
+		{
+			cout << "No virus found, proceeding to next location!\n";
+		}
+		//if we looked left without looking straight, we need to fix position
+		if(lookLeft && !lookStr)
+		{
+			lookRight = true;
+			setSpeed(fp, ZERO - (180 - ZERO), ZERO - (180 - ZERO));
+			delay(100);
+			setSpeed(fp, 0, 0);
 		}
 	}
 	printf("robot should be done\n");

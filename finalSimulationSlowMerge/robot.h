@@ -75,52 +75,6 @@ void setSpeed(FILE *fp, int left, int right)
 	fflush(fp);
 }
 
-/**int rotate(bool pos)
-{
-	static int angle = 0;
-	if(pos)
-		setSpeed(fp, 180, 180);
-	else
-		setSpeed(fp, ZERO - 180 - ZERO, ZERO - 180 - ZERO);
-	delay(750);
-	setSpeed(fp, 0, 0);
-	angle = (90 + angle) % 360;
-	return angle;
-}
-
-void turnBotABit(bool pos)
-{
-	if(pos)
-		setSpeed(fp, 180, 180);
-	else
-		setSpeed(fp, ZERO - 180 - ZERO, ZERO - 180 - ZERO);
-	delay(50);
-	setSpeed(fp, 0, 0);
-}
-
-//from 0 to 270 on 90 degree marks
-void rotateToAngle(int angleToRotateTo)
-{
-	int angleCurr = rotate(true);
-	while(angleCurr != angleToRotateTo)
-		angleCurr = rotate(true);
-}
-
-//move one square forward
-void forward()
-{
-	setSpeed(fp, 170, ZERO - 170 - ZERO);
-	delay(3000);
-	//possibly add in some error correction here like looking around at the walls
-	setSpeed(fp, 0, 0);
-}*/
-// robot movement should be handled with maintaining roughly the same left to right distances throughout the
-// run
-// to accomplish this, look left and right first
-// remember those distances
-// movement forward should be within ~30 cm from wall
-// turns need to move forward to get that distance to around 20 to account for turning radius
-// accomplish movements in steps, slowly compensating for wrong distances
 int checkSonar(int dir)
 {
 	static int prevDir = -1;
@@ -158,31 +112,18 @@ void turn(bool left)
 	cout << "turn called\n";
 	if(DISABLE_MOVE)
 		return;
-	/**int forward = checkSonar(1);
-	do
-	{
-		setSpeed(fp, 170, ZERO - 170 - ZERO);
-		delay(50);
-		setSpeed(fp, 0, 0);
-	}
-	while(forward - getCMGood() > 10);**/
 	if(!left)
 	{
 		setSpeed(fp, 180, 180);
 	}
 	else
 	{
-		setSpeed(fp, ZERO - 180 - ZERO, ZERO - 180 - ZERO);
+		setSpeed(fp, ZERO - (180 - ZERO), ZERO - (180 - ZERO));
 	}
 	delay(700);
 	setSpeed(fp, 0, 0);
 }
-/**
-* dir - 0 down
-* dir - 1 right
-* dir - 2 left
-* dir - 3 up
-*/
+
 void move(int dir, bool turnOnly)
 {
 	cout << "move called\n";
@@ -237,13 +178,13 @@ void move(int dir, bool turnOnly)
 		return;
 	//move forward now
 	int totalTime = 2000;
-	bool goLeft = true;
 	for(int i = 0; i < totalTime; i = i + totalTime/10)
 	{
 		int possibleLeft = !goLeft ? 100 : checkSonar(0);
 		int newLeft = possibleLeft % 60;
+		bool goLeft = true;
 		//int totalErrorPos =  + 10 * (possibleLeft/60);
-		if(possibleLeft > 60 || !goLeft)
+		if(possibleLeft > 60)
 		{
 			int possibleRight = checkSonar(2);
 			if(possibleRight < 60)
@@ -257,24 +198,24 @@ void move(int dir, bool turnOnly)
 					delay(40);
 					setSpeed(fp, 0, 0);
 				}
-				else if(possibleRight < 20)
+				else if(possibleRight < 23)
 				{
 					//probably right
-					setSpeed(fp, ZERO - 180 - ZERO, ZERO - 180 - ZERO);//probably left
+					setSpeed(fp, ZERO - (180 - ZERO), ZERO - (180 - ZERO));//probably left
 					delay(40);
 					setSpeed(fp, 0, 0);
 				}
 			}
 		}
 		if(goLeft)
-			if(newLeft > 35)
+			if(newLeft > 32)
 			{
 				//more than 5 away, angle a bit left
 				setSpeed(fp, ZERO - 180 - ZERO, ZERO - 180 - ZERO);//probably left
 				delay(40);
 				setSpeed(fp, 0, 0);
 			}
-			else if(newLeft < 20)
+			else if(newLeft < 23)
 			{
 				//probably right
 				setSpeed(fp, 180, 180);
@@ -293,7 +234,7 @@ void move(int dir, bool turnOnly)
 		}
 		setSpeed(fp, 0, 0);
 		delay(10);
-		setSpeed(fp, 170, ZERO - 170 - ZERO);
+		setSpeed(fp, 170, ZERO - (170 - ZERO));
 		delay(totalTime/10);
 		setSpeed(fp, 0, 0);
 	}
@@ -303,84 +244,4 @@ void move(int dir)
 {
 	move(dir, false);
 }
-
-/**void moveABit(bool forw)
-{
-	if(forw)
-		setSpeed(fp, 170, ZERO - 170 - ZERO);
-	else
-		setSpeed(fp, ZERO - 170 - ZERO, 170);
-	delay(100);
-	//possibly add in some error correction here like looking around at the walls
-	setSpeed(fp, 0, 0);
-}
-
-int straighten(bool hasLeft, bool hasRight, bool hasStriaght, int blocks, int optDist)
-{
-	//is wall in front
-	if (hasStriaght)
-	{
-		
-		//move to left
-		moveCM(fp, 50);
-		delay(750);//maybe
-		moveCM(fp, 250);
-		delay(155);
-		moveCM(fp, 0);
-		while(true)
-		{
-			int dist = getCMGood();
-			if(dist < optDist - 2 + (60 * blocks))
-				moveABit(false);
-			else if(dist > optDist + 2 + (60 * blocks))
-				moveABit(true);
-			else
-				break;
-		}
-	}
-	//is wall on left
-	else if(hasLeft)
-	{
-		//move to left
-		moveCM(fp, 250);
-		delay(750);//maybe
-		moveCM(fp, 0);
-		while(true)
-		{
-			int dist = getCMGood();
-			if(dist < optDist - 2 + (60 * blocks))
-				turnBotABit(true);
-			else if(dist > optDist + 2 + (60 * blocks))
-				turnBotABit(false);
-			else
-				break;
-		}
-	}
-	//is wall on right
-	else if(hasRight)
-	{
-		//move to left
-		moveCM(fp, 50);
-		delay(750);//maybe
-		moveCM(fp, 0);
-		while(true)
-		{
-			int dist = getCMGood();
-			if(dist < optDist - 2 + (60 * blocks))
-				turnBotABit(false);
-			else if(dist > optDist + 2 + (60 * blocks))
-				turnBotABit(true);
-			else
-				break;
-		}
-	}
-	return getCMGood();
-	//can't do anything otherwise
-}
-
-int straighten(bool hasLeft, bool hasRight, bool hasStriaght, int optDist)
-{
-	return straighten(hasLeft, hasRight, hasStriaght, 0, optDist);
-}*/
-
 #endif
