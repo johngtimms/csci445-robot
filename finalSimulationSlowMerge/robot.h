@@ -211,7 +211,7 @@ void move(int dir, bool turnOnly)
 			if(newLeft > 32)
 			{
 				//more than 5 away, angle a bit left
-				setSpeed(fp, ZERO - 180 - ZERO, ZERO - 180 - ZERO);//probably left
+				setSpeed(fp, ZERO - (180 - ZERO), ZERO - (180 - ZERO));//probably left
 				delay(40);
 				setSpeed(fp, 0, 0);
 			}
