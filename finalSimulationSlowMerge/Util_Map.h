@@ -26,7 +26,7 @@ void parseFile(
                Point &labB
                ) {
     std::ifstream myfile;
-    myfile.open ("map.txt");
+    myfile.open ("20151130finalMap.txt");
     //myfile.open ("map_origin.txt");
     //myfile.open ("map_origin_backup.txt");
 

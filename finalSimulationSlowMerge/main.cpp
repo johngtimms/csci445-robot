@@ -79,13 +79,6 @@ int main (int argc, char * const argv[]) {
     parseFile(edges,doors,docks,arcReactorLoc);
     drawMap(image, edges, doors, docks, arcReactorLoc);
 	cv::Point pos(15, 15);
-	cv :: Mat logo = cv :: imread ("ironman_icon.jpg");
-	cv :: Mat imageROI;
-    imageROI = image (cv :: Rect (pos.x, pos.y, logo.cols, logo.rows));
-    logo.copyTo (imageROI);
-    cv :: namedWindow("result");
-    cv :: imshow ("result", image);
-	cv::waitKey(0);
     
     MapNode* nodes[6][5];
     
@@ -150,7 +143,15 @@ int main (int argc, char * const argv[]) {
 	  line(image, mapNode->getPosition(), mapNode->getRight()->getPosition(), Scalar(0, 255, 0), 4, 6);
       }
     }
+	cv :: Mat logo = cv :: imread ("ironman_icon.jpg");
+	cv :: Mat imageROI;
+    imageROI = image (cv :: Rect (pos.x, pos.y, logo.cols, logo.rows));
+    logo.copyTo (imageROI);
+    cv :: namedWindow("result");
+    cv :: imshow ("result", image);
+	cv::waitKey(0);
     std::vector<MapNode*> possibleNodes(30);
+	//std::vector<MapNode*> possibleReverseNodes(0);
     int i = 0;
     for(int y = 0; y < 6; y++)
     {
@@ -162,6 +163,7 @@ int main (int argc, char * const argv[]) {
     printf("init size of possible locactions %i\n", possibleNodes.size());
     int lastMove = 0;
     //list of all nodes made, check sonar and remove impossible nodes
+	//bool reverse = false;
     while(possibleNodes.size() > 1)
     {
 	  move(UP, true);
@@ -172,7 +174,8 @@ int main (int argc, char * const argv[]) {
       int hasDown = checkSonar(1) / 60;
 	  move(LEFT, true);
       int hasLeft = checkSonar(1) / 60;
-	   printf("size %i u%i d%i l%i r%i\n", possibleNodes.size(), hasDown, hasUp, hasLeft, hasRight);
+	  //int before = possibleReverseNodes.size();
+	  printf("size %i u%i d%i l%i r%i\n", possibleNodes.size(), hasDown, hasUp, hasLeft, hasRight);
 	  for(int j = 0; j < possibleNodes.size(); j++)
 	  {
 	  //remove nodes that dont match this
@@ -188,29 +191,55 @@ int main (int argc, char * const argv[]) {
 			j--;
 			continue;
 		}
-		if(possibleNodes[j]->getRightFull() != hasRight)
+		if(hasRight && possibleNodes[j]->getRightFull() < hasRight)
 		{
+			/**if(reverse)
+				continue;
+			possibleReverseNodes.push_back(possibleNodes[j]);**/
 			possibleNodes.erase(possibleNodes.begin() + j);
 			j--;
 			continue;
 		}
-		if(possibleNodes[j]->getLeftFull() != hasLeft)
+		if(hasLeft && possibleNodes[j]->getLeftFull() < hasLeft)
 		{
+			/**if(reverse)
+				continue;
+			possibleReverseNodes.push_back(possibleNodes[j]);**/
 			possibleNodes.erase(possibleNodes.begin() + j);
 			j--;
 			continue;
 		}
       }
+	  cout << possibleNodes.size() << endl;
 	  if(possibleNodes.size() == 0)
 	  {
 		  printf("error\n");
+		  printf("error\n");
+		  printf("error\n");
+		  printf("error\n");
 		  return 0;
 	  }
+	  /**else if(possibleNodes.size() == 0)
+	  {
+		  /**for(int toAdd = 0; possibleReverseNodes.size(); toAdd++)
+		  {
+			  possibleNodes.push_back(possibleReverseNodes.pop_back());
+		  }
+		  possibleNodes.reserve(possibleNodes.size() + possibleReverseNodes.size());
+		  copy(possibleReverseNodes.begin(), possibleReverseNodes.end(), inserter(possibleNodes, possibleNodes.end()));
+		  possibleReverseNodes.clear();
+		  reverse = true;
+	  }
+	  else
+	  {
+		  reverse = false;
+	  }**/
       //do we need to move again
       if(possibleNodes.size() > 1)
       {
 		//printf("ran\n");
 		//favor up 1 and right 2
+		repeat_this_code:
 		if(hasUp && (lastMove & 4) != 4)
 		{
 			printf("went up\n");
@@ -253,26 +282,28 @@ int main (int argc, char * const argv[]) {
 		}
 		else
 		{
-			//down first
-			if((lastMove & 4) != 4)
-			{
-				lastMove &= ~1;
-				lastMove |= 4;
-				move(DOWN);
-			}
-			else if((lastMove & 8) != 8)
+			
+			if(hasLeft && (lastMove & 8) != 8)
 			{
 				lastMove &= ~2;
 				lastMove |= 8;
 				move(LEFT);
 			}
+			else if(hasDown && (lastMove & 4) != 4)
+			{
+				lastMove &= ~1;
+				lastMove |= 4;
+				move(DOWN);
+			}
 			else
 			{
 				lastMove = 0;
+				goto repeat_this_code;
 			}
 		}
       }
     }
+	cout << "found?\n";
 	MapNode* node = possibleNodes[0];
     printf("found robot at %i %i\n", node->getPosX(), node->getPosY());
     //should know where we are by this point
@@ -326,7 +357,7 @@ int main (int argc, char * const argv[]) {
 				toVisit = nodes[0][3];
 				break;
 			case 2:
-				toVisit = nodes[3][2];
+				toVisit = nodes[3][0];
 				break;
 			case 3:
 				cout << "Visited all locations, missed a lab somewhere probably, error and ending\n";
@@ -335,7 +366,7 @@ int main (int argc, char * const argv[]) {
 		if(positionCheck == 1)
 		{
 			string tempP = pathFind(node->getX(), node->getY(), toVisit->getX(), toVisit->getY(), nodes);
-				toVisit = nodes[3][2];
+				toVisit = nodes[3][0];
 				if(tempP.length() > pathFind(node->getX(), node->getY(), toVisit->getX(), toVisit->getY(), nodes).length())
 					visited2 = true;
 				else
@@ -343,7 +374,7 @@ int main (int argc, char * const argv[]) {
 		}
 		else if(positionCheck == 2)
 			if(!visited2)
-					toVisit = nodes[3][2];
+					toVisit = nodes[3][0];
 				else
 					toVisit = nodes[0][3];
 		//move to node we are visiting

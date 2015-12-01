@@ -7,7 +7,7 @@
 
 #define TRIG 5
 #define dt .01
-#define MIN_ERROR 20
+#define MIN_ERROR 15
 #define ZERO 153
 #define  RADIUS 150 //need to set this
 #define UP 1
@@ -95,7 +95,7 @@ int checkSonar(int dir)
 			moveCM(fp, 50);
 			delay(750);//maybe
 			moveCM(fp, 250);
-			delay(155);
+			delay(165);
 			moveCM(fp, 0);
 			return getCMGood();
 		case 2:
@@ -180,7 +180,7 @@ void move(int dir, bool turnOnly)
 	int totalTime = 2000;
 	for(int i = 0; i < totalTime; i = i + totalTime/10)
 	{
-		int possibleLeft = !goLeft ? 100 : checkSonar(0);
+		int possibleLeft = checkSonar(0);
 		int newLeft = possibleLeft % 60;
 		bool goLeft = true;
 		//int totalErrorPos =  + 10 * (possibleLeft/60);
